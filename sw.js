@@ -1,5 +1,7 @@
-const CACHE = 'album-thales-v2';
-const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './thales.png'];
+const CACHE = 'album-thales-v3';
+const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './thales.png',
+  './img/baleia.png', './img/tartaruga.png', './img/estrela.png', './img/alga1.png', './img/alga2.png', './img/coral.png',
+  './img/palhaco.png', './img/peixe-amarelo.png', './img/peixe-azul.png', './img/peixe-claro.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)));
   self.skipWaiting();
