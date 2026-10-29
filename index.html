@@ -30,7 +30,7 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
   html, body { margin:0; min-height:100%; color:var(--texto); background:var(--papel) var(--textura);
-    font:600 16px/1.45 var(--corpo); }
+    font:600 16px/1.45 var(--corpo); overflow-x:hidden; }
   h1, h2, h3, .display { font-family:var(--display); font-weight:700; margin:0; line-height:1.02; color:var(--marinho); }
   svg.i { width:22px; height:22px; flex:none; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
@@ -106,16 +106,16 @@
   .peixe-fx { position:absolute; left:0; top:0; will-change:transform; filter:drop-shadow(0 4px 6px rgba(19,63,107,.18)); }
 
   /* ---------- Convidado ---------- */
-  .tela { position:relative; z-index:1; }
+  .tela { position:relative; z-index:1; overflow-x:hidden; overflow-x:clip; }
   .topo { position:relative; text-align:center; padding:calc(env(safe-area-inset-top) + 28px) 16px 0; }
   .topo .ola { font-family:var(--display); font-weight:600; font-size:19px; color:#1f5f99; }
-  .topo h1 { font-size:78px; letter-spacing:-.02em; margin-top:2px; text-shadow:0 2px 0 rgba(255,255,255,.8); position:relative; display:inline-block; }
+  .topo h1 { font-size:74px; letter-spacing:-.02em; margin-top:2px; text-shadow:0 2px 0 rgba(255,255,255,.8); position:relative; display:inline-block; }
   .topo .estrela { width:40px; right:-34px; top:8px; }
   .topo .ondinha { width:180px; margin-top:4px; }
   .topo .pincel { font-size:26px; margin-top:6px; }
-  .topo .baleia { width:138px; right:-30px; top:calc(env(safe-area-inset-top) + 66px); }
+  .topo .baleia { width:104px; right:-16px; top:calc(env(safe-area-inset-top) + 2px); }
   .topo .peixeA { width:60px; left:10px; top:calc(env(safe-area-inset-top) + 20px); }
-  .topo .peixeB { width:38px; right:92px; top:calc(env(safe-area-inset-top) + 210px); }
+  .topo .peixeB { width:38px; right:30px; top:calc(env(safe-area-inset-top) + 200px); }
   .conversa { display:flex; align-items:flex-end; gap:6px; max-width:420px; margin:18px auto 0; text-align:left; position:relative; }
   .conversa .thales { position:relative; width:96px; flex:none; }
   .fala { position:relative; flex:1; background:#fff; border:2px solid var(--agua2); border-radius:22px 22px 22px 6px; padding:12px 16px;
@@ -227,7 +227,7 @@
   .tl .baleiaTl .jato { transform:scale(1.8); transform-origin:0 0; }
   .tl .qrbox { position:absolute; right:3vw; bottom:6vh; z-index:4; width:clamp(160px, 16vw, 300px); background:#fff;
     border:2px solid var(--agua2); border-radius:26px; padding:clamp(12px, 1.2vw, 22px); text-align:center; box-shadow:0 18px 40px rgba(19,63,107,.18); }
-  .tl .qrbox .pincel { font-size:clamp(16px, 1.5vw, 30px); margin-bottom:.5em; }
+  .tl .qrbox .pincel { font-size:clamp(14px, 1.3vw, 28px); margin-bottom:.5em; white-space:nowrap; padding:4px 16px 6px; }
   .tl .qrbox small { display:block; font-size:clamp(11px, .9vw, 17px); color:var(--suave); margin-top:.5em; }
   .tl .qr img, .tl .qr canvas, .qrPrint img, .qrPrint canvas { width:100% !important; height:auto !important; display:block; }
   .tl .vazioTl { position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; gap:5vw; padding:6vw 18vw 6vw 20vw; }
@@ -276,7 +276,7 @@
 
   /* ---------- Cartão do QR ---------- */
   .folha { position:relative; z-index:1; max-width:640px; margin:0 auto; padding:16px; }
-  .cartao { position:relative; overflow:hidden; background:var(--papel) var(--textura); border:2px solid var(--borda); border-radius:30px; padding:36px 28px 40px; text-align:center; }
+  .cartao { position:relative; overflow:hidden; background:var(--papel) var(--textura); border:2px solid var(--borda); border-radius:30px; padding:60px 28px 40px; text-align:center; }
   .cartao > *:not(.aq):not(.decor) { position:relative; z-index:1; }
   .cartao .decor { position:absolute; pointer-events:none; }
   .cartao .ola { font-family:var(--display); font-weight:600; font-size:20px; color:#1f5f99; }
@@ -291,6 +291,112 @@
     .cartao { break-inside:avoid; }
     * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
+  /* ---------- Pescaria de lembrancinhas ---------- */
+  .bannerP { display:flex; align-items:center; gap:12px; margin-top:12px; text-decoration:none; color:inherit; overflow:hidden;
+    background:linear-gradient(120deg, #fff 0%, #fff 45%, var(--agua1) 100%); transition:transform .35s var(--mola); }
+  .bannerP:active { transform:scale(.97); transition-duration:.08s; }
+  .bannerP .ic { width:58px; flex:none; animation:nada 2.4s ease-in-out infinite; }
+  .bannerP .txt { flex:1; min-width:0; }
+  .bannerP .txt b { display:block; font-family:var(--display); font-weight:600; font-size:19px; color:var(--marinho); line-height:1.15; }
+  .bannerP .txt span { font-size:14px; color:var(--suave); }
+  .bannerP .bauSvg { width:62px; flex:none; margin-right:-4px; }
+
+  body.pescando { overflow:hidden; }
+  .pesca { position:fixed; inset:0; z-index:1; display:flex; flex-direction:column; }
+  .pesca .cabP { position:relative; z-index:5; display:flex; align-items:center; gap:4px; padding:calc(env(safe-area-inset-top) + 8px) 12px 6px 4px; }
+  .pesca .cabP h1 { font-size:24px; flex:1; }
+  .mar { position:relative; flex:1; overflow:hidden; touch-action:none; margin:0 8px; border-radius:28px 28px 0 0; cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 22%, #d5ecf8 22%, #b9def1 55%, #93c8e6 100%);
+    -webkit-user-select:none; user-select:none; }
+  .mar .superficie { position:absolute; left:0; top:22%; width:200%; height:22px; transform:translateY(-55%); animation:onda 6s linear infinite; pointer-events:none; }
+  @keyframes onda { to { transform:translate(-50%, -55%); } }
+  .mar .barco { position:absolute; left:2%; top:calc(22% - 128px); width:160px; height:150px; transform-origin:50% 90%; animation:balancaBarco 3.6s ease-in-out infinite alternate; pointer-events:none; }
+  @keyframes balancaBarco { from { rotate:-3deg; translate:0 2px; } to { rotate:3deg; translate:0 -3px; } }
+  .mar .barco .thalesB { position:absolute; left:30px; bottom:22px; width:76px; }
+  .mar .barco svg { position:absolute; overflow:visible; }
+  .mar .barco .ponta { position:absolute; left:172px; top:-14px; width:2px; height:2px; }
+  .mar .linhaSvg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:3; }
+  .mar .anzol { position:absolute; left:0; top:0; width:20px; height:30px; z-index:4; pointer-events:none; will-change:transform; }
+  .mar .pj { position:absolute; left:0; top:0; z-index:2; pointer-events:none; will-change:transform; }
+  .mar .pj img { width:100%; display:block; filter:drop-shadow(0 6px 8px rgba(19,63,107,.18)); }
+  .mar .pj .tag { position:absolute; left:50%; top:50%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; background:#fff;
+    border:2.5px solid var(--marinho); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:17px; color:var(--marinho); }
+  .mar .alga { bottom:0; }
+  .mar .toqueAqui { position:absolute; left:50%; top:58%; width:64px; height:64px; margin:-32px 0 0 -32px; border-radius:50%;
+    border:3px solid #fff; box-shadow:0 0 0 3px rgba(19,63,107,.25); animation:toque 1.4s ease-out infinite; pointer-events:none; z-index:5; }
+  @keyframes toque { from { transform:scale(.5); opacity:1; } to { transform:scale(1.6); opacity:0; } }
+  .mar .aviso-mar { position:absolute; inset:auto 16px 50% 16px; transform:translateY(50%); z-index:6; text-align:center; background:rgba(255,255,255,.95);
+    border:2px solid var(--agua2); border-radius:24px; padding:20px 16px; box-shadow:0 12px 30px rgba(19,63,107,.15); cursor:default; animation:pop .45s var(--mola); }
+  .mar .aviso-mar h2 { font-size:26px; }
+  .mar .aviso-mar p { margin:8px 0 14px; color:var(--suave); }
+  .mar .aviso-mar .linhaNome { margin-top:12px; }
+  .painelP { position:relative; z-index:5; background:rgba(251,248,241,.94); padding:12px 16px calc(env(safe-area-inset-bottom) + 14px); min-height:118px;
+    display:flex; flex-direction:column; justify-content:center; gap:10px; text-align:center; }
+  .painelP .dica { font-family:var(--display); font-weight:600; font-size:19px; color:var(--marinho); }
+  .painelP .puxar { min-height:64px; font-size:24px; border-radius:22px; box-shadow:0 8px 18px rgba(19,63,107,.3); }
+  .painelP .puxar:active { transform:scale(.88); }
+  .medidor { height:12px; border-radius:12px; background:var(--agua1); border:2px solid var(--agua2); overflow:hidden; }
+  .medidor i { display:block; height:100%; width:0; border-radius:12px; background:linear-gradient(90deg, var(--agua3), var(--sol)); transition:width .12s; }
+  .painelP .tremer { animation:tremer .35s ease-in-out infinite; }
+  @keyframes tremer { 25% { transform:translateX(-3px) rotate(-1deg); } 75% { transform:translateX(3px) rotate(1deg); } }
+
+  /* baú */
+  .bauSvg { display:block; overflow:visible; }
+  .bauSvg .tampa { transform-box:view-box; transform-origin:24px 86px; transition:transform .9s var(--mola); }
+  .bauSvg .luz { opacity:0; transition:opacity .6s .2s; }
+  .bauSvg.aberto .tampa { transform:rotate(-24deg) translate(-6px, -14px); }
+  .bauSvg.aberto .luz { opacity:1; }
+  .bauSvg .brilho { opacity:0; }
+  .bauSvg.aberto .brilho { animation:brilho 1.8s ease-out infinite; animation-delay:var(--d, 0s); }
+  @keyframes brilho { 0% { opacity:0; transform:translateY(0) scale(.4); } 30% { opacity:1; } 100% { opacity:0; transform:translateY(-46px) scale(1.1); } }
+  .bauSvg .brilho { transform-box:fill-box; transform-origin:center; }
+
+  /* revelação */
+  .revela { position:fixed; inset:0; z-index:2; overflow-y:auto; text-align:center; }
+  .revela .rv { position:relative; z-index:1; max-width:420px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 28px) 20px calc(env(safe-area-inset-bottom) + 28px); }
+  .revela .ola { font-family:var(--display); font-weight:600; font-size:20px; color:#1f5f99; animation:entra .5s var(--mola) both; }
+  .revela .peixeNum { position:relative; width:170px; margin:10px auto 0; animation:pulaPeixe .9s var(--mola) both .1s; }
+  .revela .peixeNum img { width:100%; display:block; filter:drop-shadow(0 10px 14px rgba(19,63,107,.2)); }
+  .revela .peixeNum span { position:absolute; left:50%; top:50%; width:66px; height:66px; margin:-33px 0 0 -33px; border-radius:50%; background:#fff;
+    border:4px solid var(--marinho); display:grid; place-items:center; font-family:var(--display); font-weight:700; font-size:34px; color:var(--marinho); }
+  @keyframes pulaPeixe { from { transform:translateY(60px) rotate(-200deg) scale(.3); opacity:0; } }
+  .revela h2 { font-size:54px; margin-top:6px; animation:entra .5s var(--mola) both .5s; }
+  .revela .bauBox { width:190px; margin:44px auto 0; animation:caiBau .7s var(--mola) both .7s; }
+  @keyframes caiBau { from { transform:translateY(-40px) scale(.7); opacity:0; } }
+  .revela p { font-family:var(--display); font-weight:500; font-size:20px; color:var(--marinho); margin:18px auto 22px; max-width:22ch; animation:entra .5s both 1.2s; }
+  .revela p b { font-weight:700; }
+  .revela .btn { width:100%; min-height:56px; animation:entra .5s both 1.4s; }
+  .revela.ja .ola, .revela.ja .peixeNum, .revela.ja h2, .revela.ja .bauBox, .revela.ja p, .revela.ja .btn { animation:none; }
+
+  /* telão: faixa da pescaria */
+  .tl .faixaPesca { position:absolute; left:50%; bottom:1.6vh; transform:translateX(-50%); z-index:5; background:var(--marinho); color:#fff;
+    font-family:var(--display); font-weight:600; font-size:clamp(14px, 1.4vw, 28px); padding:.5em 1.4em; border-radius:99px; white-space:nowrap;
+    box-shadow:0 10px 24px rgba(19,63,107,.3); animation:pulsa 2s ease-in-out infinite; }
+
+  /* pais: pescaria */
+  .cardPesca { display:grid; gap:12px; }
+  .cardPesca .linhaP { display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:8px; align-items:end; }
+  .cardPesca .nBaus label { font-size:14px; }
+  .cardPesca .nBaus input { min-height:44px; padding:8px 10px; text-align:center; }
+  .cardPesca .nBaus button { min-height:44px; padding:0 10px; font-size:15px; }
+  .cardPesca .linha2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .chipEstado { font-family:var(--corpo); font-size:13px; font-weight:800; padding:4px 12px; border-radius:99px; background:var(--agua1); color:var(--suave); }
+  .chipEstado.on { background:#dff3e8; color:var(--ok); }
+  .listaP { list-style:none; margin:0; padding:0; display:grid; gap:6px; max-height:320px; overflow:auto; }
+  .listaP li { display:flex; align-items:center; gap:10px; background:var(--papel); border-radius:14px; padding:6px 6px 6px 8px; font-size:14px; }
+  .listaP .nb { width:40px; height:40px; border-radius:50%; background:#fff; border:2px solid var(--marinho); display:grid; place-items:center;
+    font-family:var(--display); font-weight:700; color:var(--marinho); flex:none; }
+  .listaP .q { flex:1; min-width:0; color:var(--suave); }
+  .listaP .q b { display:block; color:var(--marinho); font-family:var(--display); font-weight:600; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .listaP button { min-height:40px; font-size:14px; padding:0 10px; }
+
+  /* etiquetas dos baús */
+  .etiquetas { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; }
+  .etq { background:#fff; border:2px dashed var(--agua3); border-radius:20px; padding:12px 8px 10px; text-align:center; break-inside:avoid; }
+  .etq .bauSvg { width:64px; margin:0 auto; }
+  .etq b { display:block; font-family:var(--display); font-weight:700; font-size:54px; line-height:1; color:var(--marinho); margin-top:4px; }
+  .etq span { font-size:12px; color:var(--suave); }
+  @media print { .etiquetas { grid-template-columns:repeat(3, 1fr); } .folha { max-width:none; } }
   @media (max-width:370px) { .topo h1 { font-size:66px; } .conversa .thales { width:82px; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
 </style>
@@ -644,7 +750,7 @@ window.addEventListener('online', processar);
 let timers = [];
 function limparTimers() { timers.forEach(t => { clearInterval(t); clearTimeout(t); }); timers = []; }
 function render() {
-  limparTimers(); fecharLb(); document.querySelectorAll('.toast').forEach(t => t.remove());
+  limparTimers(); pararPesca(); fecharLb(); document.querySelectorAll('.toast').forEach(t => t.remove());
   $('#fx')?.replaceChildren();
   document.body.className = '';
   T.rodando = false;
@@ -652,6 +758,8 @@ function render() {
   if (rota === 'telao') return telao();
   if (rota === 'pais') return pais();
   if (rota === 'qr') return paginaQr();
+  if (rota === 'pescar') return pescaria();
+  if (rota === 'baus') return paginaBaus();
   return convidado();
 }
 window.addEventListener('hashchange', render);
@@ -683,6 +791,11 @@ function convidado() {
           <div id="blocoNome">${blocoNome(nome)}</div>
           <div class="recado" id="blocoRecado"></div>
         </section>
+        <a class="card bannerP" href="#pescar">
+          <img class="ic" src="${IMG.peixes[2]}" alt="">
+          <div class="txt"><b>Pescaria de lembrancinhas</b><span id="pescaSub">${esc(textoBanner())}</span></div>
+          ${bauSvg('?')}
+        </a>
         <div class="fila" id="fila" aria-live="polite"></div>
         <div class="seg" role="tablist" id="abas"></div>
         <div id="grade"></div>
@@ -708,7 +821,7 @@ function convidado() {
 function blocoNome(nome) {
   return nome
     ? `<div class="quem"><div class="avatar" aria-hidden="true">${esc(nome.trim()[0].toUpperCase())}</div>
-        <div class="txt">Suas fotos vão com o nome<b>${esc(nome)}</b></div>
+        <div class="txt">Enviando como<b>${esc(nome)}</b></div>
         <button class="btn-txt" data-trocar-nome>Trocar</button></div>`
     : `<div class="field">
         <label for="nome">Como você se chama?</label>
@@ -779,6 +892,7 @@ async function carregarAlbum() {
     const r = await apiGet();
     const antes = albumCache.map(f => f.id).join();
     albumCache = r.fotos.slice().reverse(); albumCarregado = true;
+    if (r.pesca) { pescaStatus = r.pesca; atualizarBanner(); }
     desenharAbas();
     if (albumCache.map(f => f.id).join() !== antes || !$('#grade .grade')) desenharAlbum();
   } catch (e) {
@@ -884,6 +998,7 @@ function telao() {
         <div class="txt"><h2>Tire uma foto e mande pro álbum!</h2><p>Aponte a câmera do celular para o código. Sua foto aparece aqui na tela.</p></div>
         <div class="qrG qr" id="qrGrande"></div>
       </div>
+      <div class="faixaPesca" id="faixaPesca" hidden>A pescaria está aberta! Pesque sua lembrancinha pelo celular</div>
       <div class="iniciar" id="iniciar"><div><h2>Telão do Thales</h2><button>Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p></div></div>
       <button class="sair btn-sec" onclick="location.hash=''">${ic('sair')}Sair do telão</button>
     </div>
@@ -912,6 +1027,7 @@ async function buscarTelao(primeira) {
     const r = await apiGet();
     const visiveis = new Set(r.fotos.map(f => f.id));
     T.fotos = r.fotos;
+    if ($('#faixaPesca')) $('#faixaPesca').hidden = !(r.pesca && r.pesca.aberta && r.pesca.restantes > 0);
     T.ciclo = T.ciclo.filter(f => visiveis.has(f.id));   // tira fotos que os pais ocultaram
     T.novas = T.novas.filter(f => visiveis.has(f.id));
     for (const f of r.fotos) {
@@ -1020,6 +1136,17 @@ function pais() {
           <button class="btn btn-sec" data-pais="compartilhar">${ic('link')}Enviar link</button>
         </div>
       </div>
+      <div class="group-title"><span>Pescaria de lembrancinhas</span><span class="chipEstado" id="pescaEstado">–</span></div>
+      <div class="card cardPesca">
+        <div class="linhaP">
+          <div><div class="kpi" id="pPescados">–</div><div class="kpi-label">Pescados</div></div>
+          <div><div class="kpi" id="pRest">–</div><div class="kpi-label">Restam</div></div>
+          <div class="field nBaus"><label for="nBaus">Nº de baús</label><div class="linhaNome"><input id="nBaus" type="number" inputmode="numeric" min="1" max="200"><button class="btn-sec" data-pesca="total">Salvar</button></div></div>
+        </div>
+        <button id="btAbrir" data-pesca="abrir">Abrir pescaria</button>
+        <div class="linha2"><a class="btn btn-sec" href="#baus">Imprimir números</a><button class="btn btn-sec" data-pesca="zerar">Zerar pescaria</button></div>
+        <ul class="listaP" id="listaP"></ul>
+      </div>
       <div class="group-title"><span>Fotos recebidas</span>
         <div class="chips">
           <button class="chip" data-filtro="todas" aria-pressed="${filtroPais === 'todas'}">Todas</button>
@@ -1038,8 +1165,25 @@ async function carregarPais() {
     if (!paisDados) $('#gradePais').innerHTML = vazio('', 'Não conseguimos carregar as fotos. Verifique a internet.');
   }
 }
+function desenharPescaPais() {
+  const p = paisDados.pesca || { total: 30, aberta: false, restantes: 30, pescados: 0, sorteados: [] };
+  if (!$('#pPescados')) return;
+  $('#pPescados').textContent = p.pescados; $('#pRest').textContent = p.restantes;
+  if (document.activeElement !== $('#nBaus')) $('#nBaus').value = p.total;
+  const est = $('#pescaEstado'); est.textContent = p.aberta ? 'Aberta' : 'Fechada'; est.classList.toggle('on', p.aberta);
+  const bt = $('#btAbrir'); bt.textContent = p.aberta ? 'Fechar pescaria' : 'Abrir pescaria'; bt.classList.toggle('btn-sec', p.aberta);
+  const l = (p.sorteados || []).slice().sort((a, b) => b.t - a.t);
+  $('#listaP').innerHTML = l.length ? l.map(s => `<li><span class="nb">${esc(s.n)}</span><span class="q"><b>${esc(s.nome)}</b>${hora(s.t)}</span>
+      <button class="btn-sec" data-devolver="${esc(s.n)}" aria-label="Devolver o baú ${esc(s.n)} para a pescaria">Devolver</button></li>`).join('')
+    : '<li><span class="q">Ninguém pescou ainda.</span></li>';
+}
+async function postPais(obj, ok) {
+  try { await apiPost({ ...obj, pin: sessionStorage.getItem('album-pin') }); if (ok) toast(ok); await carregarPais(); return true; }
+  catch (e) { toast('Não deu certo: ' + e.message); return false; }
+}
 function desenharPais() {
   if (!paisDados || !$('#gradePais')) return;
+  desenharPescaPais();
   const todas = paisDados.fotos.slice().reverse();
   $('#sTotal').textContent = todas.length.toLocaleString('pt-BR');
   $('#sPessoas').textContent = new Set(todas.map(f => f.nome)).size.toLocaleString('pt-BR');
@@ -1075,6 +1219,27 @@ document.addEventListener('click', async e => {
   }
   const fi = t.closest('[data-filtro]');
   if (fi) { filtroPais = fi.dataset.filtro; return desenharPais(); }
+  const pe = t.closest('[data-pesca]')?.dataset.pesca;
+  if (pe === 'total') {
+    const v = Math.round(+$('#nBaus').value);
+    if (!(v >= 1 && v <= 200)) { $('#nBaus').focus(); return toast('Coloque um número de 1 a 200'); }
+    return postPais({ acao: 'pesca-config', total: v }, `Agora são ${v} baús`);
+  }
+  if (pe === 'abrir') {
+    const abrir = !(paisDados?.pesca?.aberta);
+    return postPais({ acao: 'pesca-config', aberta: abrir }, abrir ? 'Pescaria aberta! Os convidados já podem pescar.' : 'Pescaria fechada');
+  }
+  if (pe === 'zerar') {
+    if (!confirm('Zerar a pescaria? Todos os baús voltam para o mar. Use só depois dos testes.')) return;
+    if (await postPais({ acao: 'pesca-zerar' }, 'Pescaria zerada. Todos os baús voltaram para o mar.')) local.set('pesca', null);
+    return;
+  }
+  const dv = t.closest('[data-devolver]');
+  if (dv) {
+    const n = dv.dataset.devolver;
+    if (confirm(`Devolver o baú ${n}? Ele volta para o mar e pode ser pescado de novo.`)) postPais({ acao: 'pesca-devolver', n: +n }, `Baú ${n} voltou para o mar`);
+    return;
+  }
   const oc = t.closest('[data-ocultar]');
   if (oc) {
     const id = oc.dataset.ocultar, vaiOcultar = oc.dataset.estado !== '1';
@@ -1096,8 +1261,8 @@ function paginaQr() {
       <div class="cartao">
         ${aquarela('#cfe6f3', 'left:-80px;top:-60px;width:240px')}
         ${aquarela('#bfdff0', 'right:-90px;top:-40px;width:250px', 1)}
-        <img class="decor" src="${IMG.baleia}" alt="" style="right:14px;top:22px;width:110px">
-        <img class="decor" src="${IMG.peixes[0]}" alt="" style="left:22px;top:30px;width:56px">
+        <img class="decor" src="${IMG.baleia}" alt="" style="right:10px;top:10px;width:78px">
+        <img class="decor" src="${IMG.peixes[0]}" alt="" style="left:14px;top:14px;width:46px">
         <img class="decor" src="${IMG.alga1}" alt="" style="left:-10px;bottom:0;height:150px">
         <img class="decor" src="${IMG.coral}" alt="" style="left:58px;bottom:0;height:64px">
         <img class="decor" src="${IMG.alga2}" alt="" style="right:-6px;bottom:0;height:160px">
@@ -1112,6 +1277,310 @@ function paginaQr() {
       </div>
     </div>`;
   qr($('#qrPrint'), linkConvidado());
+}
+
+/* ---------- pescaria de lembrancinhas ---------- */
+let pescaStatus = null, idBau = 0;
+function idAparelho() {
+  let id = local.get('dispositivo', '');
+  if (!id) { id = uid(); local.set('dispositivo', id); }
+  return id;
+}
+function bauSvg(num, cls = '') {
+  const g = 'luzBau' + (++idBau);
+  return `<svg class="bauSvg ${cls}" viewBox="0 0 200 180" aria-hidden="true">
+    <defs><radialGradient id="${g}"><stop offset="0" stop-color="#fff6c8"/><stop offset=".55" stop-color="#ffe27a" stop-opacity=".7"/><stop offset="1" stop-color="#ffe27a" stop-opacity="0"/></radialGradient></defs>
+    <ellipse class="luz" cx="100" cy="74" rx="96" ry="58" fill="url(#${g})"/>
+    <g fill="#f6c443"><path class="brilho" style="--d:0s" d="M70 70l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/><path class="brilho" style="--d:.6s" d="M128 62l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path class="brilho" style="--d:1.1s" d="M100 50l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></g>
+    <g class="corpo">
+      <rect x="22" y="84" width="156" height="84" rx="12" fill="#b0703f" stroke="#6e3f20" stroke-width="4"/>
+      <path d="M24 112H176M24 140H176" stroke="#8c5430" stroke-width="3"/>
+      <rect x="42" y="84" width="16" height="84" fill="#f6c443" stroke="#c9952a" stroke-width="3"/>
+      <rect x="142" y="84" width="16" height="84" fill="#f6c443" stroke="#c9952a" stroke-width="3"/>
+      <rect x="70" y="96" width="60" height="50" rx="12" fill="#fff8e0" stroke="#c9952a" stroke-width="4"/>
+      <text x="100" y="133" text-anchor="middle" font-family="Fredoka, ui-rounded, sans-serif" font-weight="700" font-size="${String(num).length > 1 ? 32 : 36}" fill="#133f6b">${esc(num)}</text>
+    </g>
+    <g class="tampa">
+      <path d="M22 88V64C22 34 58 18 100 18s78 16 78 46v24Z" fill="#c07d48" stroke="#6e3f20" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M42 88V34c5-3 10-5 16-6v60Z" fill="#f6c443" stroke="#c9952a" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M158 88V34c-5-3-10-5-16-6v60Z" fill="#f6c443" stroke="#c9952a" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M30 60c20-10 120-10 140 0" fill="none" stroke="#d99560" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+function textoBanner() {
+  const meu = local.get('pesca', null);
+  if (meu) return `Você pescou o baú nº ${meu.numero}. Toque para ver.`;
+  if (!pescaStatus) return 'Pesque o seu tesouro do fundo do mar!';
+  if (pescaStatus.aberta && pescaStatus.restantes > 0) return 'Está aberta! Toque para pescar o seu tesouro.';
+  if (pescaStatus.aberta) return 'Todos os baús já foram pescados.';
+  return 'Abre no fim da festa. Fique de olho!';
+}
+function atualizarBanner() { const s = $('#pescaSub'); if (s) s.textContent = textoBanner(); }
+
+const P = { estado: '', peixes: [], raf: 0, ultimo: 0, hook: { x: 0, y: 0 }, tween: null, alvo: null, prog: 0, fundoY: 0, promessa: null, W: 0, H: 0, sup: 0 };
+function pararPesca() { cancelAnimationFrame(P.raf); P.raf = 0; P.estado = ''; P.peixes = []; P.alvo = null; }
+
+function pescaria() {
+  document.body.className = 'sem-barra pescando';
+  const meu = local.get('pesca', null);
+  if (meu) return revelar(meu.numero, true);
+  $('#app').innerHTML = `
+    <div class="oceano" aria-hidden="true">${aquarela('#cfe6f3', 'left:-90px;top:-70px;width:260px')}${aquarela('#bfdff0', 'right:-110px;top:-50px;width:280px', 1)}</div>
+    <div class="pesca">
+      <div class="cabP"><a class="btn btn-icone" href="#" aria-label="Voltar ao álbum">${ic('voltar')}</a><h1>Pescaria do Thales</h1></div>
+      <div class="mar" id="mar" role="application" aria-label="Mar da pescaria: toque na água para jogar a linha">
+        <svg class="superficie" viewBox="0 0 800 22" preserveAspectRatio="none" aria-hidden="true"><path d="M0 11 Q 25 0 50 11 T 100 11 T 150 11 T 200 11 T 250 11 T 300 11 T 350 11 T 400 11 T 450 11 T 500 11 T 550 11 T 600 11 T 650 11 T 700 11 T 750 11 T 800 11" fill="none" stroke="#6fb3dc" stroke-width="3"/></svg>
+        ${bolhas(7)}
+        <img class="alga" src="${IMG.alga1}" alt="" style="left:-14px;height:120px;animation-duration:5.5s">
+        <img class="alga" src="${IMG.coral}" alt="" style="left:44px;height:58px;animation-duration:7s">
+        <img class="alga" src="${IMG.alga2}" alt="" style="right:-10px;height:130px;animation-delay:-2s;scale:-1 1">
+        <img class="alga" src="${IMG.estrela}" alt="" style="right:58px;height:40px;animation:none">
+        <div class="barco" id="barco">
+          <img class="thalesB" src="thales.png" alt="">
+          <svg width="160" height="150" viewBox="0 0 160 150" style="left:0;top:0" aria-hidden="true">
+            <path d="M94 56 L172 -14" stroke="#7a4524" stroke-width="4" stroke-linecap="round"/>
+            <path d="M2 104 H158 L142 146 Q80 156 18 146 Z" fill="#f6c443" stroke="#133f6b" stroke-width="4" stroke-linejoin="round"/>
+            <path d="M10 118 H150" stroke="#133f6b" stroke-width="6"/>
+            <text x="80" y="140" text-anchor="middle" font-family="Fredoka, ui-rounded, sans-serif" font-weight="700" font-size="15" fill="#133f6b" letter-spacing="2">THALES</text>
+          </svg>
+          <span class="ponta" id="ponta"></span>
+        </div>
+        <svg class="linhaSvg" aria-hidden="true"><path id="linha" d="" fill="none" stroke="#4c6a85" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg class="anzol" id="anzol" viewBox="0 0 20 30" aria-hidden="true"><circle cx="10" cy="3" r="2.6" fill="none" stroke="#6b7d8f" stroke-width="2"/>
+          <path d="M10 6 V20 Q10 27 5 26 Q1 25 2 20" fill="none" stroke="#6b7d8f" stroke-width="2.6" stroke-linecap="round"/><path d="M2 20 l-1 4 3-2" fill="#6b7d8f"/>
+          <circle cx="10" cy="-6" r="5" fill="#f07a4a" stroke="#fff" stroke-width="2"/></svg>
+        <div class="toqueAqui" id="toqueAqui" hidden></div>
+      </div>
+      <div class="painelP" id="painelP"><div class="dica">Preparando o mar…</div></div>
+    </div>`;
+  prepararJogo();
+  if (!configurado()) return bloqueio('config');
+  apiGet({ acao: 'pesca' }).then(s => {
+    pescaStatus = s;
+    if (location.hash !== '#pescar') return;
+    if (!s.aberta) return bloqueio('fechada');
+    if (!s.restantes) return bloqueio('acabou');
+    if (!local.get('nome', '')) return pedirNome();
+    liberar();
+  }).catch(() => location.hash === '#pescar' && bloqueio('rede'));
+}
+function painel(html) { const p = $('#painelP'); if (p) p.innerHTML = html; }
+function avisoMar(html) { $('.aviso-mar')?.remove(); if (!html) return; const d = document.createElement('div'); d.className = 'aviso-mar'; d.innerHTML = html; $('#mar')?.appendChild(d); }
+function bloqueio(tipo) {
+  P.estado = 'bloqueado';
+  const voltar = `<a class="btn" href="#">Voltar ao álbum</a>`;
+  const msgs = {
+    fechada: `<h2>Ainda não abriu!</h2><p>A pescaria abre no fim da festa. Os peixinhos estão se arrumando.</p>${voltar}`,
+    acabou: `<h2>Todos os baús foram pescados!</h2><p>Não sobrou nenhum tesourinho no mar. Obrigado por vir!</p>${voltar}`,
+    rede: `<h2>Sem conexão com o mar</h2><p>Verifique a internet e tente de novo.</p><button data-pesca-retentar>Tentar de novo</button>`,
+    config: `<h2>Quase lá!</h2><p>Falta colar a SCRIPT_URL no index.html.</p>${voltar}`
+  };
+  avisoMar(msgs[tipo]);
+  painel(`<div class="dica">${tipo === 'fechada' ? 'Volte mais tarde para pescar' : ' '}</div>`);
+}
+function pedirNome() {
+  P.estado = 'bloqueado';
+  avisoMar(`<h2>Quem vai pescar?</h2><p>Conte seu nome para os pais do Thales saberem quem pegou cada baú.</p>
+    <div class="linhaNome"><input id="nomePesca" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="given-name" enterkeyhint="done"><button data-nome-pesca>Pronto</button></div>`);
+  painel('<div class="dica">Depois é só tocar na água!</div>');
+  setTimeout(() => $('#nomePesca')?.focus(), 300);
+}
+function liberar() {
+  avisoMar('');
+  P.estado = 'pronto';
+  $('#toqueAqui') && ($('#toqueAqui').hidden = false);
+  painel('<div class="dica">Toque na água para jogar a linha</div>');
+}
+
+function prepararJogo() {
+  const mar = $('#mar'); if (!mar) return;
+  P.W = mar.clientWidth; P.H = mar.clientHeight; P.sup = P.H * 0.22;
+  const k = Math.min(1.3, Math.max(.8, P.W / 380));
+  P.peixes = [];
+  for (let i = 0; i < 7; i++) {
+    const src = IMG.peixes[i % IMG.peixes.length], w = sorteio(56, 80) * k, el = document.createElement('div');
+    el.className = 'pj'; el.style.width = w + 'px';
+    el.innerHTML = `<img src="${src}" alt=""><span class="tag">?</span>`;
+    mar.appendChild(el);
+    const y0 = sorteio(P.sup + 60, P.H - 90);
+    P.peixes.push({ el, img: el.firstElementChild, src, w, h: w * .68, x: sorteio(0, P.W), y: y0, y0, fase: Math.random() * 6,
+      vx: (Math.random() > .5 ? 1 : -1) * sorteio(.035, .07) * k });
+  }
+  P.hook = { x: P.W * .45, y: P.sup + 30 };
+  P.ultimo = performance.now();
+  cancelAnimationFrame(P.raf); P.raf = requestAnimationFrame(loopPesca);
+}
+const olhaPara = (f, dir) => { f.img.style.transform = `scaleX(${(OLHA_ESQ.has(f.src) ? dir > 0 : dir < 0) ? -1 : 1})`; };
+function loopPesca(ts) {
+  if (location.hash !== '#pescar' || !$('#mar')) return;
+  const dt = Math.min(50, ts - P.ultimo); P.ultimo = ts;
+  const marR = $('#mar').getBoundingClientRect(), pR = $('#ponta').getBoundingClientRect();
+  const px = pR.left - marR.left, py = pR.top - marR.top;
+  // anzol
+  if (P.tween) {
+    const t = Math.min(1, (ts - P.tween.t0) / P.tween.dur), e = 1 - Math.pow(1 - t, 3);
+    P.hook.x = P.tween.de.x + (P.tween.ate.x - P.tween.de.x) * e;
+    P.hook.y = P.tween.de.y + (P.tween.ate.y - P.tween.de.y) * e;
+    if (t >= 1) { const fim = P.tween.fim; P.tween = null; fim && fim(); }
+  } else if (P.estado === 'pronto' || P.estado === 'bloqueado') {
+    P.hook.x += (px - P.hook.x) * .1; P.hook.y = P.sup + 26 + Math.sin(ts / 600) * 4;
+  } else if (P.estado === 'fisgou') {
+    P.prog = Math.max(0, P.prog - .00005 * dt);
+    P.hook.y = P.fundoY + (P.sup - 34 - P.fundoY) * P.prog;
+    P.hook.x += Math.sin(ts / 110) * .6;
+    const m = $('#medidor i'); if (m) m.style.width = Math.round(P.prog * 100) + '%';
+    if (P.prog >= 1) sairDaAgua();
+  }
+  // peixes
+  for (const f of P.peixes) {
+    if (f === P.alvo && P.estado === 'esperando' && !P.tween) {
+      const tx = P.hook.x, ty = P.hook.y + 30, dx = tx - f.x, dy = ty - f.y, d = Math.hypot(dx, dy);
+      const v = .16 * dt; olhaPara(f, dx);
+      if (d < 8) fisgar(); else { f.x += dx / d * Math.min(v, d); f.y += dy / d * Math.min(v, d); }
+      f.el.style.transform = `translate(${f.x - f.w / 2}px, ${f.y - f.h / 2}px)`;
+      continue;
+    }
+    if (f === P.alvo && (P.estado === 'fisgou' || P.estado === 'saindo')) {
+      if (P.estado === 'fisgou') { f.x = P.hook.x; f.y = P.hook.y + 30 + f.w * .3; }
+      f.el.style.transform = `translate(${f.x - f.w / 2}px, ${f.y - f.h / 2}px) rotate(${-70 + Math.sin(ts / 70) * 12}deg)`;
+      continue;
+    }
+    f.x += f.vx * dt; f.y = f.y0 + Math.sin(ts / 700 + f.fase) * 8;
+    if (f.x < -f.w) f.vx = Math.abs(f.vx); else if (f.x > P.W + f.w) f.vx = -Math.abs(f.vx);
+    olhaPara(f, f.vx);
+    f.el.style.transform = `translate(${f.x - f.w / 2}px, ${f.y - f.h / 2}px) rotate(${Math.sin(ts / 300 + f.fase) * 4}deg)`;
+  }
+  // linha e anzol
+  const mx = (px + P.hook.x) / 2, my = Math.max(py, P.hook.y) - (P.estado === 'fisgou' ? 0 : 0) + (P.estado === 'fisgou' ? -10 : 26);
+  $('#linha').setAttribute('d', `M${px} ${py} Q${mx} ${my} ${P.hook.x} ${P.hook.y}`);
+  $('#anzol').style.transform = `translate(${P.hook.x - 10}px, ${P.hook.y}px)`;
+  P.raf = requestAnimationFrame(loopPesca);
+}
+function jogarLinha(e) {
+  if (P.estado !== 'pronto') return;
+  const r = $('#mar').getBoundingClientRect();
+  const x = Math.max(30, Math.min(P.W - 30, e.clientX - r.left)), y = Math.max(P.sup + 70, Math.min(P.H - 70, e.clientY - r.top));
+  P.estado = 'descendo'; $('#toqueAqui').hidden = true; Fx.vibrar(8);
+  painel('<div class="dica">Espere um peixinho morder…</div>');
+  P.tween = { de: { ...P.hook }, ate: { x, y }, t0: performance.now(), dur: 750, fim: () => {
+    P.estado = 'esperando';
+    Fx.bolhas(r.left + x, r.top + y, 5, .5);
+    timers.push(setTimeout(escolherPeixe, sorteio(500, 1300)));
+  } };
+}
+function escolherPeixe() {
+  if (P.estado !== 'esperando') return;
+  let melhor = null, dMin = Infinity;
+  for (const f of P.peixes) { const d = Math.hypot(f.x - P.hook.x, f.y - P.hook.y); if (f.x > 0 && f.x < P.W && d < dMin) { dMin = d; melhor = f; } }
+  P.alvo = melhor || P.peixes[0];
+  painel('<div class="dica">Olha! Um peixinho está vindo…</div>');
+}
+function fisgar() {
+  P.estado = 'fisgou'; P.fundoY = P.hook.y; P.prog = .06;
+  Fx.vibrar([40, 30, 40]);
+  const r = $('#mar').getBoundingClientRect(); Fx.bolhas(r.left + P.hook.x, r.top + P.hook.y + 30, 8, .8);
+  for (const f of P.peixes) if (f !== P.alvo) f.vx = (f.x < P.hook.x ? -1 : 1) * Math.abs(f.vx) * 2.4;
+  painel(`<div class="dica">Fisgou! Toque em PUXAR bem rápido!</div>
+    <div class="medidor" id="medidor" aria-hidden="true"><i></i></div>
+    <button class="puxar tremer" data-puxar>Puxar!</button>`);
+  P.promessa = apiPost({ acao: 'pescar', dispositivo: idAparelho(), nome: local.get('nome', '') }).then(r => r.numero);
+  P.promessa.catch(() => {});
+}
+function puxar() {
+  if (P.estado !== 'fisgou') return;
+  P.prog = Math.min(1, P.prog + .16); Fx.vibrar(6);
+  if (P.prog >= 1) { P.hook.y = P.sup - 34; return sairDaAgua(); }
+  const r = $('#mar').getBoundingClientRect(); Fx.bolhas(r.left + P.hook.x, r.top + P.hook.y + 40, 2, .4);
+}
+function sairDaAgua() {
+  P.estado = 'saindo';
+  painel('<div class="dica">Olha o que veio no anzol!</div>');
+  const f = P.alvo, de = `translate(${f.x - f.w / 2}px, ${f.y - f.h / 2}px)`, ate = `translate(${P.W / 2 - f.w / 2}px, ${P.sup - 150}px)`;
+  f.el.style.zIndex = 6;
+  const r = $('#mar').getBoundingClientRect(); Fx.bolhas(r.left + P.hook.x, r.top + P.sup, 12, 1.2);
+  f.el.animate([{ transform: de + ' rotate(-70deg) scale(1)' }, { transform: `translate(${P.W / 2 - f.w / 2}px, ${P.sup - 220}px) rotate(200deg) scale(1.6)`, offset: .6 },
+    { transform: ate + ' rotate(360deg) scale(2)' }], { duration: 1000, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'forwards' }).onfinish = mostrarResultado;
+}
+async function mostrarResultado() {
+  try {
+    const n = await P.promessa;
+    local.set('pesca', { numero: n, t: Date.now() });
+    revelar(n, false);
+  } catch (e) {
+    const m = String(e.message || '');
+    if (/fechada/i.test(m)) return bloqueio('fechada');
+    if (/Acabaram/i.test(m)) return bloqueio('acabou');
+    P.estado = 'erro';
+    avisoMar(`<h2>A linha embolou!</h2><p>A internet falhou bem na hora. Seu peixinho está esperando.</p><button data-pesca-resultado>Tentar de novo</button>`);
+  }
+}
+function revelar(n, jaTinha) {
+  pararPesca();
+  document.body.className = 'sem-barra';
+  const peixe = IMG.peixes[n % IMG.peixes.length];
+  $('#app').innerHTML = `
+    ${fundoOceano()}
+    <div class="revela ${jaTinha ? 'ja' : ''}">
+      <div class="rv">
+        <div class="ola">${jaTinha ? 'Você já pescou o seu tesouro:' : 'Você pescou o'}</div>
+        <div class="peixeNum"><img src="${peixe}" alt=""><span>${esc(n)}</span></div>
+        <h2>Baú nº ${esc(n)}</h2>
+        <div class="bauBox">${bauSvg(n, jaTinha ? 'aberto' : '')}</div>
+        <p>Procure o baú com o número <b>${esc(n)}</b> e pegue o seu tesouro!</p>
+        <a class="btn" href="#">Voltar ao álbum</a>
+      </div>
+    </div>`;
+  if (!jaTinha) {
+    timers.push(setTimeout(() => {
+      $('.revela .bauSvg')?.classList.add('aberto'); Fx.vibrar([20, 40, 20, 40, 60]);
+      const b = $('.revela .bauBox')?.getBoundingClientRect();
+      if (b) { Fx.bolhas(b.left + b.width / 2, b.top + b.height / 3, 16, 1.5); }
+      Fx.cardume(6);
+    }, 1300));
+  }
+}
+document.addEventListener('pointerdown', e => {
+  if (location.hash !== '#pescar') return;
+  if (e.target.closest('#mar') && !e.target.closest('.aviso-mar')) jogarLinha(e);
+});
+document.addEventListener('click', async e => {
+  if (location.hash !== '#pescar') return;
+  if (e.target.closest('[data-puxar]')) return puxar();
+  if (e.target.closest('[data-pesca-retentar]')) { pararPesca(); return pescaria(); }
+  if (e.target.closest('[data-pesca-resultado]')) {
+    avisoMar('');
+    P.promessa = apiPost({ acao: 'pescar', dispositivo: idAparelho(), nome: local.get('nome', '') }).then(r => r.numero);
+    return mostrarResultado();
+  }
+  if (e.target.closest('[data-nome-pesca]')) {
+    const v = ($('#nomePesca')?.value || '').trim();
+    if (!v) { $('#nomePesca')?.focus(); return toast('Escreva seu nome para pescar'); }
+    local.set('nome', v); liberar();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'nomePesca' && e.key === 'Enter') { e.preventDefault(); $('[data-nome-pesca]')?.click(); }
+  if (location.hash === '#pescar' && (e.key === ' ' || e.key === 'Enter') && P.estado === 'fisgou') { e.preventDefault(); puxar(); }
+});
+
+/* ---------- etiquetas numeradas dos baús ---------- */
+async function paginaBaus() {
+  document.body.className = 'sem-barra';
+  let total = pescaStatus?.total || 30;
+  $('#app').innerHTML = `<div class="folha"><div class="vazio">Preparando as etiquetas…</div></div>`;
+  try { if (configurado()) { pescaStatus = await apiGet({ acao: 'pesca' }); total = pescaStatus.total; } } catch {}
+  if (location.hash !== '#baus') return;
+  let h = '';
+  for (let n = 1; n <= total; n++) h += `<div class="etq">${bauSvg(n)}<b>${n}</b><span>Pescaria do Thales</span></div>`;
+  $('#app').innerHTML = `
+    <div class="folha">
+      <div class="naoimprime" style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+        <a class="btn btn-txt" href="#pais">${ic('voltar')}Voltar</a><span style="flex:1"></span><button onclick="print()">Imprimir</button>
+      </div>
+      <p class="naoimprime" style="color:var(--suave);margin:0 0 12px">${total} etiquetas. Recorte e cole uma em cada baú.</p>
+      <div class="etiquetas">${h}</div>
+    </div>`;
 }
 
 /* ---------- início ---------- */
