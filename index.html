@@ -113,7 +113,7 @@
   .topo .estrela { width:40px; right:-34px; top:8px; }
   .topo .ondinha { width:180px; margin-top:4px; }
   .topo .pincel { font-size:26px; margin-top:6px; }
-  .topo .baleia { width:104px; right:-16px; top:calc(env(safe-area-inset-top) + 2px); }
+  .topo .baleia { width:104px; left:6px; right:auto; top:calc(env(safe-area-inset-top) + 176px); }
   .topo .peixeA { width:60px; left:10px; top:calc(env(safe-area-inset-top) + 20px); }
   .topo .peixeB { width:38px; right:30px; top:calc(env(safe-area-inset-top) + 200px); }
   .conversa { display:flex; align-items:flex-end; gap:6px; max-width:420px; margin:18px auto 0; text-align:left; position:relative; }
@@ -1527,7 +1527,7 @@ function revelar(n, jaTinha) {
         <div class="peixeNum"><img src="${peixe}" alt=""><span>${esc(n)}</span></div>
         <h2>Baú nº ${esc(n)}</h2>
         <div class="bauBox">${bauSvg(n, jaTinha ? 'aberto' : '')}</div>
-        <p>Procure o baú com o número <b>${esc(n)}</b> e pegue o seu tesouro!</p>
+        <p>Baú com o número <b>${esc(n)}</b>: Procure o papai e a mamãe para pegar o seu tesouro!</p>
         <a class="btn" href="#">Voltar ao álbum</a>
       </div>
     </div>`;
