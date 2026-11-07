@@ -113,7 +113,7 @@
   .topo .estrela { width:40px; right:-34px; top:8px; }
   .topo .ondinha { width:180px; margin-top:4px; }
   .topo .pincel { font-size:26px; margin-top:6px; }
-  .topo .baleia { width:104px; left:6px; right:auto; top:calc(env(safe-area-inset-top) + 176px); }
+  .topo .baleia { width:104px; right:-16px; top:calc(env(safe-area-inset-top) + 2px); }
   .topo .peixeA { width:60px; left:10px; top:calc(env(safe-area-inset-top) + 20px); }
   .topo .peixeB { width:38px; right:30px; top:calc(env(safe-area-inset-top) + 200px); }
   .conversa { display:flex; align-items:flex-end; gap:6px; max-width:420px; margin:18px auto 0; text-align:left; position:relative; }
@@ -234,7 +234,7 @@
   .tl .vazioTl h2 { font-size:clamp(32px, 4.2vw, 84px); max-width:11ch; }
   .tl .vazioTl p { font-size:clamp(16px, 1.6vw, 30px); color:var(--suave); margin:.8em 0 0; max-width:22ch; }
   .tl .vazioTl .qrG { width:min(26vw, 44vh); background:#fff; padding:1.6vw; border-radius:28px; border:2px solid var(--agua2); box-shadow:0 18px 50px rgba(19,63,107,.18); flex:none; }
-  .tl .iniciar { position:absolute; inset:0; z-index:10; display:grid; place-items:center; background:rgba(251,248,241,.85); cursor:pointer; text-align:center; }
+  .tl .iniciar { position:absolute; inset:0; z-index:10; display:grid; place-items:center; background:rgba(251,248,241,.9); cursor:default; text-align:center; overflow:auto; }
   .tl .iniciar h2 { font-size:56px; }
   .tl .iniciar button { font-size:24px; min-height:68px; padding:0 36px; margin-top:24px; }
   .tl .iniciar p { color:var(--suave); margin:12px 0 0; }
@@ -291,6 +291,42 @@
     .cartao { break-inside:avoid; }
     * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
+  /* ---------- vídeo e Spotify no telão ---------- */
+  .videoTl { position:fixed; inset:0; z-index:70; background:#000; display:grid; place-items:center; cursor:none; }
+  .videoTl video { width:100%; height:100%; object-fit:contain; background:#000; }
+  .videoTl .fechar { position:absolute; right:16px; top:16px; opacity:0; transition:opacity .3s; cursor:pointer; background:rgba(255,255,255,.15); color:#fff; border:0; }
+  .videoTl:hover { cursor:default; } .videoTl:hover .fechar { opacity:1; }
+  .spotifyTl { position:absolute; right:3vw; top:calc(6vh + 11vw); z-index:6; width:clamp(240px, 16vw, 300px); border-radius:14px; overflow:hidden;
+    box-shadow:0 10px 26px rgba(19,63,107,.18); cursor:default; background:#fff; }
+  .spotifyTl iframe { display:block; border:0; }
+  .tl .iniciar .config { display:grid; gap:12px; text-align:left; width:min(520px, 88vw); margin:20px auto 0; background:#fff; border:2px solid var(--agua2);
+    border-radius:20px; padding:16px; cursor:default; }
+  .tl .iniciar .config label { font-family:var(--display); font-weight:600; color:var(--marinho); font-size:17px; display:block; margin-bottom:6px; }
+  .tl .iniciar .config .linha { display:flex; gap:8px; align-items:center; }
+  .tl .iniciar .config .info { font-size:13px; color:var(--suave); margin-top:4px; }
+  .tl .iniciar .config button { margin:0; font-size:15px; min-height:44px; padding:0 14px; flex:none; }
+  .tl .iniciar .config input[type=url] { min-height:44px; }
+  /* ---------- falas do Thales no telão ---------- */
+  .falaTl { position:fixed; left:2vw; bottom:3vh; z-index:50; display:flex; align-items:flex-end; gap:1vw; pointer-events:none;
+    transform:translateY(120%) rotate(-8deg); opacity:0; transition:transform .8s var(--mola), opacity .4s; max-width:62vw; }
+  .falaTl.vis { transform:none; opacity:1; }
+  .falaTl img { width:clamp(150px, 17vw, 330px); flex:none; transform-origin:50% 80%; }
+  .falaTl img, .conversa .thales img { transition:transform .12s; }
+  .silaba { transform:translateY(-7px) rotate(-3deg) scale(1.04, .97) !important; }
+  @keyframes falaPula { from { transform:rotate(-5deg) translateY(0) scale(1); } to { transform:rotate(4deg) translateY(-2.4vh) scale(1.04); } }
+  .balaoTl { position:relative; background:#fff; border:3px solid var(--agua2); border-radius:28px 28px 28px 8px; padding:1.4vh 1.6vw;
+    font-family:var(--display); font-weight:600; font-size:clamp(20px, 2.3vw, 46px); line-height:1.15; color:var(--marinho);
+    box-shadow:0 18px 40px rgba(19,63,107,.22); margin-bottom:12vh; transform-origin:0 100%; }
+  .falaTl.vis .balaoTl { animation:pop .5s var(--mola) .35s backwards; }
+  .falaTl.grande { left:50%; bottom:50%; transform:translate(-50%, 160%) scale(.6); flex-direction:column; align-items:center; max-width:80vw; text-align:center; }
+  .falaTl.grande.vis { transform:translate(-50%, 50%) scale(1); }
+  .falaTl.grande img { width:clamp(240px, 30vw, 560px); order:2; }
+  .falaTl.grande .balaoTl { margin:0; font-size:clamp(28px, 3.6vw, 72px); border-radius:36px; padding:2vh 2.4vw; }
+  .tl .thalesTl { transition:opacity .4s; }
+  :has(#falaTl.vis) .tl .thalesTl { opacity:0; }
+  :has(#falaTl.grande.vis) .tl .palco, :has(#falaTl.grande.vis) .tl .qrbox { opacity:.15; transition:opacity .6s; }
+  .momentos { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .momentos button { min-height:52px; font-size:15px; }
   /* ---------- Pescaria de lembrancinhas ---------- */
   .bannerP { display:flex; align-items:center; gap:12px; margin-top:12px; text-decoration:none; color:inherit; overflow:hidden;
     background:linear-gradient(120deg, #fff 0%, #fff 45%, var(--agua1) 100%); transition:transform .35s var(--mola); }
@@ -375,9 +411,10 @@
 
   /* pais: pescaria */
   .cardPesca { display:grid; gap:12px; }
-  .cardPesca .linhaP { display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:8px; align-items:end; }
+  .cardPesca .linhaP { display:grid; grid-template-columns:.8fr .8fr 1.6fr; gap:8px; align-items:end; }
   .cardPesca .nBaus label { font-size:14px; }
-  .cardPesca .nBaus input { min-height:44px; padding:8px 10px; text-align:center; }
+  .cardPesca .nBaus input { min-height:44px; padding:8px 2px; text-align:center; min-width:56px; flex:1; }
+  .cardPesca .nBaus .linhaNome { gap:6px; }
   .cardPesca .nBaus button { min-height:44px; padding:0 10px; font-size:15px; }
   .cardPesca .linha2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .chipEstado { font-family:var(--corpo); font-size:13px; font-weight:800; padding:4px 12px; border-radius:99px; background:var(--agua1); color:var(--suave); }
@@ -408,13 +445,14 @@
 /* CONFIG — cole aqui a URL do App da Web do Google Apps Script (termina em /exec) */
 const CONFIG = {
   APP_NAME: 'Álbum do Thales',
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwVDfaGZ747bco9Pq2y8ej0G4EO4oNml_XVDoB6jaxlnIB-Ffvb60ITt4Rs57TANPOd/exec',
+  SCRIPT_URL: 'COLE_AQUI_A_URL_DO_SCRIPT',
   DATA_FESTA: '7 de novembro',
   TROCA_SEGUNDOS: 8,       // tempo de cada foto no telão
   ATUALIZA_SEGUNDOS: 15,   // de quanto em quanto tempo o telão busca fotos novas
   LADO_MAX: 2560,          // maior lado da foto enviada (px)
   QUALIDADE: 0.86,
-  STORAGE_KEY: 'album-thales-v1'
+  STORAGE_KEY: 'album-thales-v1',
+  SPOTIFY_PLAYLIST: ''      // opcional: link da playlist (também dá para colar na tela "Iniciar telão")
 };
 
 /* ---------- utilidades ---------- */
@@ -569,10 +607,13 @@ const FALAS = ['Oi! Tira uma foto da festa pra mim?', 'Glub glub! Que festa boa!
 let falaIdx = 0;
 function falar(texto) {
   const f = $('#fala'); if (!f) return;
-  f.textContent = texto || FALAS[++falaIdx % FALAS.length];
+  const t = texto || FALAS[++falaIdx % FALAS.length];
   f.classList.remove('nova'); void f.offsetWidth; f.classList.add('nova');
+  digitarFalando(f, t, { boneco: $('[data-bicho=thales] img'), vel: 42 });
 }
 
+// libera o som no primeiro toque (regra dos navegadores)
+document.addEventListener('pointerdown', () => Balbucio.destravar(), { once: true, capture: true });
 // toque nos bichinhos
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-bicho]'); if (!b) return;
@@ -982,7 +1023,7 @@ document.addEventListener('change', e => {
 });
 
 /* ---------- telão ---------- */
-const T = { fotos: [], conhecidas: new Set(), novas: [], ciclo: [], camada: 0, rodando: false, wake: null };
+const T = { fotos: [], conhecidas: new Set(), novas: [], ciclo: [], camada: 0, rodando: false, wake: null, momento: null };
 function telao() {
   document.body.className = 'telao sem-barra';
   $('#app').innerHTML = `
@@ -999,15 +1040,40 @@ function telao() {
         <div class="qrG qr" id="qrGrande"></div>
       </div>
       <div class="faixaPesca" id="faixaPesca" hidden>A pescaria está aberta! Pesque sua lembrancinha pelo celular</div>
-      <div class="iniciar" id="iniciar"><div><h2>Telão do Thales</h2><button>Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p></div></div>
+      <div class="spotifyTl" id="spotifyTl" hidden><div id="spotifyFrame"></div></div>
+      <div class="iniciar" id="iniciar"><div><h2>Telão do Thales</h2>
+        <div class="config">
+          <div><label>Vídeo do aniversário</label>
+            <div class="linha"><button class="btn-sec" id="escolherVideo">Escolher vídeo</button><span class="info" id="videoInfo">Verificando…</span></div>
+            <input type="file" id="arquivoVideo" accept="video/*" hidden>
+            <div class="info">Fica guardado neste computador. Para tocar: botão na área dos pais ou tecla V.</div></div>
+          <div><label for="linkSpotify">Playlist do Spotify (opcional)</label>
+            <input type="url" id="linkSpotify" placeholder="Cole o link da playlist" value="${esc(Spotify.link())}">
+            <div class="info">Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.</div></div>
+        </div>
+        <button id="btIniciar">Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p></div></div>
+      <div class="videoTl" id="videoTl" hidden><video playsinline></video><button class="fechar" onclick="pararVideo()">Fechar vídeo</button></div>
       <button class="sair btn-sec" onclick="location.hash=''">${ic('sair')}Sair do telão</button>
     </div>
+    <div class="falaTl" id="falaTl" aria-live="polite"><img src="img/thales-mergulho.png" alt=""><div class="balaoTl"></div></div>
     ${configurado() ? '' : '<div class="aviso" style="position:fixed;top:0;left:0;right:0;z-index:20">Falta a SCRIPT_URL no index.html</div>'}`;
   qr($('#qrPeq'), linkConvidado()); qr($('#qrGrande'), linkConvidado());
-  $('#iniciar').addEventListener('click', iniciarTelao);
+  $('#btIniciar').addEventListener('click', iniciarTelao);
+  $('#escolherVideo').addEventListener('click', () => $('#arquivoVideo').click());
+  $('#arquivoVideo').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    $('#videoInfo').textContent = 'Guardando…';
+    try { await VideoLocal.salvar(f); videoURL = null; $('#videoInfo').textContent = '✓ ' + f.name; }
+    catch { $('#videoInfo').textContent = 'Não deu para guardar. Tente de novo.'; }
+  });
+  VideoLocal.ler().then(f => { if ($('#videoInfo')) $('#videoInfo').textContent = f ? '✓ ' + (f.name || 'vídeo guardado') : 'Nenhum vídeo escolhido'; });
+  $('#videoTl video').addEventListener('ended', pararVideo);
   buscarTelao(T.conhecidas.size === 0);
 }
 async function iniciarTelao() {
+  Balbucio.destravar();
+  local.set('spotify', ($('#linkSpotify')?.value || '').trim());
+  Spotify.montar();
   $('#iniciar')?.remove();
   try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.(); } catch {}
   manterAcesa();
@@ -1017,7 +1083,23 @@ async function iniciarTelao() {
   timers.push(setInterval(() => Fx.tartaruga(innerHeight * sorteio(.55, .8)), 32000));
   timers.push(setInterval(() => Math.random() > .4 && Fx.cardume(4), 21000));
   timers.push(setTimeout(() => Fx.tartaruga(innerHeight * .7), 3000));
+  timers.push(setInterval(checarMomento, 5000));
   proximaFoto();
+}
+function novoMomento(m, primeira) {
+  if (!m) return;
+  if (primeira || T.momento === null) { T.momento = m.t; return; }   // não repete o último ao abrir o telão
+  if (m.t === T.momento) return;
+  T.momento = m.t;
+  if (m.tipo === 'video' && T.rodando) return tocarVideo();
+  if (m.tipo === 'pararvideo') return pararVideo();
+  const mo = VOZ.momentos[m.tipo];
+  if (mo && T.rodando) falaThales(mo.frase, mo.audios, true);
+}
+async function checarMomento() {
+  if (!T.rodando || location.hash !== '#telao' || !configurado()) return;
+  try { const r = await apiGet({ acao: 'pesca' }); novoMomento(r.momento, false);
+    if ($('#faixaPesca')) $('#faixaPesca').hidden = !(r.aberta && r.restantes > 0); } catch {}
 }
 async function manterAcesa() { try { T.wake = await navigator.wakeLock?.request('screen'); } catch {} }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && T.rodando && location.hash === '#telao') manterAcesa(); });
@@ -1027,6 +1109,7 @@ async function buscarTelao(primeira) {
     const r = await apiGet();
     const visiveis = new Set(r.fotos.map(f => f.id));
     T.fotos = r.fotos;
+    novoMomento(r.momento, primeira);
     if ($('#faixaPesca')) $('#faixaPesca').hidden = !(r.pesca && r.pesca.aberta && r.pesca.restantes > 0);
     T.ciclo = T.ciclo.filter(f => visiveis.has(f.id));   // tira fotos que os pais ocultaram
     T.novas = T.novas.filter(f => visiveis.has(f.id));
@@ -1080,7 +1163,7 @@ async function proximaFoto() {
       </figcaption>
     </figure>`;
   requestAnimationFrame(() => { el.classList.add('vis'); velho.classList.remove('vis'); });
-  if (f.nova) { Fx.cardume(6); setTimeout(() => Fx.esguicho($('.baleiaTl')), 400); }
+  if (f.nova) { Fx.cardume(6); setTimeout(() => Fx.esguicho($('.baleiaTl')), 400); const fl = falaPorNome(f.nome); setTimeout(() => falaThales(fl.texto, fl.audios), 900); }
   timers.push(setTimeout(proximaFoto, CONFIG.TROCA_SEGUNDOS * 1000 + (f.nova ? 3000 : 0)));
 }
 
@@ -1135,6 +1218,16 @@ function pais() {
           <a class="btn btn-sec" href="#qr">${ic('qr')}QR das mesas</a>
           <button class="btn btn-sec" data-pais="compartilhar">${ic('link')}Enviar link</button>
         </div>
+      </div>
+      <div class="group-title"><span>Vídeo do Thales no telão</span></div>
+      <div class="card">
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Toca o vídeo em tela cheia no telão (em até 5 segundos) e pausa a música. Quando acaba, as fotos e a música voltam sozinhas.</p>
+        <div class="momentos"><button data-momento="video">Tocar vídeo</button><button class="btn-sec" data-momento="pararvideo">Parar vídeo</button></div>
+      </div>
+      <div class="group-title"><span>Thales fala no telão</span></div>
+      <div class="card">
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Toque e o Thales aparece no telão falando, em até 5 segundos. Fotos novas já disparam um agradecimento com o nome de quem mandou.</p>
+        <div class="momentos">${Object.entries(VOZ.momentos).map(([k, m]) => `<button class="btn-sec" data-momento="${k}">${esc(m.botao)}</button>`).join('')}</div>
       </div>
       <div class="group-title"><span>Pescaria de lembrancinhas</span><span class="chipEstado" id="pescaEstado">–</span></div>
       <div class="card cardPesca">
@@ -1219,6 +1312,8 @@ document.addEventListener('click', async e => {
   }
   const fi = t.closest('[data-filtro]');
   if (fi) { filtroPais = fi.dataset.filtro; return desenharPais(); }
+  const mo = t.closest('[data-momento]')?.dataset.momento;
+  if (mo) return postPais({ acao: 'momento', tipo: mo }, mo === 'video' ? 'O vídeo começa no telão em instantes' : mo === 'pararvideo' ? 'Parando o vídeo no telão' : `Enviado: "${VOZ.momentos[mo].botao}" aparece no telão em instantes`);
   const pe = t.closest('[data-pesca]')?.dataset.pesca;
   if (pe === 'total') {
     const v = Math.round(+$('#nBaus').value);
@@ -1527,7 +1622,7 @@ function revelar(n, jaTinha) {
         <div class="peixeNum"><img src="${peixe}" alt=""><span>${esc(n)}</span></div>
         <h2>Baú nº ${esc(n)}</h2>
         <div class="bauBox">${bauSvg(n, jaTinha ? 'aberto' : '')}</div>
-        <p>Baú com o número <b>${esc(n)}</b>: Procure o papai e a mamãe para pegar o seu tesouro!</p>
+        <p>Procure o baú com o número <b>${esc(n)}</b> e pegue o seu tesouro!</p>
         <a class="btn" href="#">Voltar ao álbum</a>
       </div>
     </div>`;
@@ -1582,6 +1677,238 @@ async function paginaBaus() {
       <div class="etiquetas">${h}</div>
     </div>`;
 }
+
+/* ---------- falas do Thales no telão ----------
+   Edite aqui os nomes, as frases e os áudios.
+   Áudios: coloque arquivos .mp3 na pasta voz/ com o nome indicado em "audios".
+   Se o arquivo não existir, o Thales "fala" com frases reais dele (voz/frases.wav) tocando junto com o texto. */
+const VOZ = {
+  grupos: [
+    { nome: 'vovô', nomes: ['adilson', 'vovô', 'vô', 'avô'],
+      frases: ['Valeu, vovô! Essa foto tá mais bonita que baleia!', 'Vovô! Agora tira uma comigo, tá?', 'Obrigado, vovô! Você é o capitão do meu barco!'],
+      audios: ['voz/vovo-adilson.mp3'] },
+    { nome: 'vovó', nomes: ['janete', 'graciane', 'vovó', 'vó', 'avó', 'vovo', 'vo', 'avo'],
+      frases: ['Obrigado, vovó! Essa vai direto pra geladeira!', 'Vovó tirou foto? Então eu ganhei mais um beijo!', 'Vovó, você é a sereia mais linda da festa!'],
+      audios: ['voz/vovo.mp3'] }
+  ],
+  // para todo o resto: {tio} vira "tio" ou "tia" e {nome} vira o primeiro nome
+  padrao: { frases: ['Valeu, {tio} {nome}! Que foto bonita!', 'Obrigado, {tio} {nome}! Ficou show de bola!', 'Eba! Foto do {tio} {nome}! Tô aparecendo bonito?', '{Tio} {nome}, você é fera! Manda mais!'],
+    audios: ['voz/tio.mp3'] },
+  // momentos disparados pela área dos pais
+  momentos: {
+    boasvindas: { botao: 'Boas-vindas', frase: 'Oi, gente! Bem-vindos ao meu fundo do mar!', audios: ['voz/boas-vindas.mp3'] },
+    fotos: { botao: 'Peça fotos', frase: 'Ei! Tira foto e manda pro meu álbum! Aponta o celular pro código!', audios: ['voz/fotos.mp3'] },
+    parabens: { botao: 'Parabéns', frase: 'É hora do parabéns! Todo mundo cantando bem alto!', audios: ['voz/parabens.mp3'] },
+    pescaria: { botao: 'Pescaria aberta', frase: 'A pescaria abriu! Vem pescar o seu tesouro!', audios: ['voz/pescaria.mp3'] },
+    obrigado: { botao: 'Obrigado por virem', frase: 'Obrigado por virem na minha festa! Eu amo vocês!', audios: ['voz/obrigado.mp3'] }
+  },
+  // true = se existir um arquivo gravado (ex.: voz/vovo.mp3), ele toca no lugar do balbucio
+  usarArquivos: true
+};
+const semAcento = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+function grupoDoNome(nome) {
+  const tokens = String(nome || '').toLowerCase().split(/[^a-zà-ú]+/i).filter(Boolean);
+  for (const g of VOZ.grupos)
+    for (const n of g.nomes) {
+      const temAcento = n !== semAcento(n);
+      if (tokens.some(t => temAcento ? t === n : semAcento(t) === n)) return g;
+    }
+  return null;
+}
+function falaPorNome(nome) {
+  const g = grupoDoNome(nome);
+  if (g) return { texto: g.frases[Math.floor(Math.random() * g.frases.length)], audios: g.audios };
+  const partes = String(nome || '').trim().split(/\s+/);
+  let tio = 'tio', primeiro = partes[0] || 'amigo';
+  if (/^ti[oa]$/i.test(primeiro) && partes[1]) { tio = primeiro.toLowerCase(); primeiro = partes[1]; }
+  else if (/a$/i.test(semAcento(primeiro))) tio = 'tia';
+  primeiro = primeiro[0].toUpperCase() + primeiro.slice(1);
+  const f = VOZ.padrao.frases[Math.floor(Math.random() * VOZ.padrao.frases.length)];
+  return { texto: f.replace('{Tio}', tio[0].toUpperCase() + tio.slice(1)).replace('{tio}', tio).replace('{nome}', primeiro), audios: VOZ.padrao.audios };
+}
+/* Balbucio: frases reais do Thales (do jeitinho que ele falou) tocadas junto com o texto, estilo jogo de RPG */
+const Balbucio = {
+  ctx: null, buf: null, idx: [], pronto: null, recentes: [],
+  carregar() {
+    if (this.pronto) return this.pronto;
+    this.pronto = (async () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!this.ctx) this.ctx = new AC();
+      const [ab, js] = await Promise.all([fetch('voz/frases.wav').then(r => r.arrayBuffer()), fetch('voz/frases.json').then(r => r.json())]);
+      this.idx = js;
+      this.buf = await new Promise((res, rej) => this.ctx.decodeAudioData(ab, res, rej));
+    })().catch(e => { this.pronto = null; throw e; });
+    return this.pronto;
+  },
+  destravar() {   // chamar dentro de um toque/clique: navegadores só liberam som depois de uma interação
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!this.ctx && AC) this.ctx = new AC();
+      this.ctx?.resume(); this.carregar().catch(() => {});
+    } catch {}
+  },
+  // escolhe a frase dele com número de sílabas mais parecido (sem repetir as últimas)
+  escolher(silabas, exclamacao) {
+    let melhor = null, nota = 1e9;
+    for (const f of this.idx) {
+      const n = Math.abs(f.sil - silabas) + (exclamacao && !f.agudo ? 0.8 : 0) + (this.recentes.includes(f) ? 3 : 0) + Math.random() * 0.9;
+      if (n < nota) { nota = n; melhor = f; }
+    }
+    this.recentes = [melhor, ...this.recentes].slice(0, 4);
+    return melhor;
+  },
+  tocar(f) {   // devolve a duração em segundos (0 se não deu para tocar)
+    if (!f || !this.buf || !this.ctx || this.ctx.state !== 'running') return 0;
+    const src = this.ctx.createBufferSource(); src.buffer = this.buf;
+    src.connect(this.ctx.destination); src.start(0, f.i, f.d);
+    return f.d;
+  }
+};
+const VOGAL = /[aeiouáéíóúâêôãõày]/i;
+const esperar = ms => new Promise(r => setTimeout(r, ms));
+const contarSilabas = t => (t.match(/[aeiouáéíóúâêôãõày]+/gi) || []).length;
+let digitacao = 0;
+// divide o texto em pedaços (até vírgula, ponto, "!" ou "?"); cada pedaço ganha uma frase real dele
+// e as letras aparecem no mesmo ritmo do áudio
+async function digitarFalando(el, texto, { boneco, vel = 52 } = {}) {
+  const meu = ++digitacao;
+  await Promise.race([Balbucio.carregar().catch(() => {}), esperar(900)]);
+  const pedacos = texto.match(/[^,.!?;]+[,.!?;]*\s*/g) || [texto];
+  let feito = '';
+  for (const p of pedacos) {
+    if (meu !== digitacao || !el.isConnected) return false;
+    const sil = contarSilabas(p), exc = /!/.test(p);
+    // pedaço muito longo para uma frase só: usa duas em sequência
+    const partes = sil > 8 ? [Math.ceil(sil / 2), Math.floor(sil / 2)] : [sil];
+    let dur = 0, ritmo = [];
+    for (const n of partes) {
+      const f = Balbucio.escolher(Math.max(1, n), exc);
+      const d = await new Promise(res => setTimeout(() => res(Balbucio.tocar(f)), dur * 1000));
+      if (d && boneco) for (let k = 0; k < f.sil; k++) ritmo.push(setTimeout(() => Fx.reagir(boneco, 'silaba', 150), (dur + d * (k + .3) / f.sil) * 1000));
+      dur += d ? d + 0.08 : 0;
+      if (!d) break;
+    }
+    // espalha as letras ao longo da duração do áudio (ou na velocidade padrão, se não houver som)
+    const passo = dur ? Math.min(140, Math.max(28, (dur * 1000) / p.length)) : vel;
+    for (let k = 0; k < p.length; k++) {
+      if (meu !== digitacao || !el.isConnected) { ritmo.forEach(clearTimeout); return false; }
+      el.textContent = feito + p.slice(0, k + 1);
+      await esperar(passo);
+    }
+    feito += p;
+    await esperar(/[.!?]\s*$/.test(p) ? 380 : /,\s*$/.test(p) ? 200 : 60);
+  }
+  return true;
+}
+async function tocarArquivo(src) {   // áudio gravado (opcional): toca se o arquivo existir
+  if (!src) return false;
+  try {
+    const r = await fetch(src, { method: 'HEAD' }); if (!r.ok) return false;
+    const a = new Audio(src); await a.play();
+    await new Promise(res => { a.onended = res; a.onerror = res; });
+    return true;
+  } catch { return false; }
+}
+
+const Voz = { fila: [], falando: false };
+function falaThales(texto, audios, grande = false) {
+  Voz.fila.push({ texto, audios, grande });
+  if (!Voz.falando) proximaFala();
+}
+async function proximaFala() {
+  const f = Voz.fila.shift(); const el = $('#falaTl');
+  if (!f || !el || location.hash !== '#telao') { Voz.falando = false; return; }
+  Voz.falando = true;
+  await Balbucio.carregar().catch(() => {});
+  el.className = 'falaTl' + (f.grande ? ' grande' : '');
+  const balao = el.querySelector('.balaoTl'), boneco = el.querySelector('img');
+  balao.textContent = '';
+  void el.offsetWidth; el.classList.add('vis');
+  if (f.grande) { Fx.cardume(8); Fx.esguicho($('.baleiaTl')); }
+  await esperar(650);
+  const t0 = Date.now();
+  if (VOZ.usarArquivos && await tocarArquivo(f.audios?.[0])) balao.textContent = f.texto;
+  else await digitarFalando(balao, f.texto, { boneco });
+  await esperar(Math.max(1600, (f.grande ? 4000 : 2600) - (Date.now() - t0) / 3));
+  el.classList.remove('vis');
+  await esperar(700);
+  proximaFala();
+}
+
+/* ---------- vídeo do aniversário e playlist do Spotify no telão ---------- */
+// O vídeo fica guardado no navegador do computador do telão (escolhido uma vez na tela "Iniciar telão").
+const VideoLocal = {
+  db: null,
+  abrir() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('album-thales-midia', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('arquivos');
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async salvar(file) {
+    const db = await this.abrir();
+    return new Promise((res, rej) => { const tx = db.transaction('arquivos', 'readwrite'); tx.objectStore('arquivos').put(file, 'video'); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+  },
+  async ler() {
+    try {
+      const db = await this.abrir();
+      return await new Promise(res => { const q = db.transaction('arquivos').objectStore('arquivos').get('video'); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); });
+    } catch { return null; }
+  }
+};
+const Spotify = {
+  ctrl: null, tocando: false,
+  link() { return local.get('spotify', CONFIG.SPOTIFY_PLAYLIST || ''); },
+  uri(link) {
+    const m = String(link || '').match(/(playlist|album|track)[/:]([A-Za-z0-9]{10,})/);
+    return m ? `spotify:${m[1]}:${m[2]}` : '';
+  },
+  montar() {
+    const uri = this.uri(this.link()), caixa = $('#spotifyTl');
+    if (!uri || !caixa) return;
+    caixa.hidden = false;
+    const criar = API => API.createController($('#spotifyFrame'), { uri, width: '100%', height: 80 }, c => {
+      this.ctrl = c;
+      c.addListener('playback_update', e => { this.tocando = !e.data.isPaused; });
+    });
+    if (window.SpotifyIframeApi) return criar(window.SpotifyIframeApi);
+    window.onSpotifyIframeApiReady = API => { window.SpotifyIframeApi = API; criar(API); };
+    if (!document.querySelector('script[data-spotify]')) {
+      const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; s.dataset.spotify = '1';
+      document.head.appendChild(s);
+    }
+  },
+  pausar() { if (this.ctrl && this.tocando) { this.estavaTocando = true; try { this.ctrl.pause(); } catch {} } else this.estavaTocando = false; },
+  voltar() { if (this.ctrl && this.estavaTocando) try { this.ctrl.resume(); } catch {} }
+};
+let videoURL = null;
+async function tocarVideo() {
+  const el = $('#videoTl'), v = $('#videoTl video');
+  if (!el || !v) return;
+  if (!videoURL) {
+    const f = await VideoLocal.ler();
+    if (!f) { toast('Nenhum vídeo escolhido neste computador. Escolha na tela "Iniciar telão".'); return; }
+    videoURL = URL.createObjectURL(f);
+  }
+  Spotify.pausar();
+  v.src = videoURL; v.currentTime = 0;
+  el.hidden = false;
+  try { await v.play(); } catch { v.muted = true; v.play().catch(() => {}); }
+}
+function pararVideo() {
+  const el = $('#videoTl'), v = $('#videoTl video');
+  if (!el || el.hidden) return;
+  v.pause(); el.hidden = true; v.muted = false;
+  Spotify.voltar();
+}
+document.addEventListener('keydown', e => {
+  if (location.hash !== '#telao' || e.target.closest?.('input')) return;
+  if (e.key === 'v' || e.key === 'V') { $('#videoTl')?.hidden === false ? pararVideo() : tocarVideo(); }
+  if (e.key === 'Escape') pararVideo();
+});
 
 /* ---------- início ---------- */
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
