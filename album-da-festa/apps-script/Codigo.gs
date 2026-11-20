@@ -23,6 +23,7 @@
 const CFG = {
   NOME_RAIZ: 'Álbum da Festa — festas',
   SITE: 'https://albumdafesta.github.io',
+  EMAIL_PRODUTO: 'albumdafesta.app@gmail.com',   // recebe os pedidos do Feito pra Você
   FUSO: 'America/Sao_Paulo',
   LIMITE_BYTES: 15 * 1024 * 1024,     // por foto
   LIMITE_VIDEO: 30 * 1024 * 1024,     // por vídeo (até 30 s, preparado no celular)
@@ -204,7 +205,7 @@ function briefing_(b) {
     'Compra no nome de: ' + pedido.pedido, 'E-mail da família: ' + contato, '',
     'Para montar: no Apps Script, ponha o protocolo em BRIEFING_ALVO e rode montarBriefing().'
   ];
-  try { MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Novo briefing: ' + nome + ' (' + protocolo + ')', linhas.join('\n')); } catch (x) {}
+  try { MailApp.sendEmail(CFG.EMAIL_PRODUTO, 'Novo briefing: ' + nome + ' (' + protocolo + ')', linhas.join('\n')); } catch (x) {}
   try {
     MailApp.sendEmail(contato, 'Recebemos o pedido do álbum da festa de ' + nome,
       'Oi! Recebemos as informações da festa de ' + nome + ' (protocolo ' + protocolo + ').\n\n' +
