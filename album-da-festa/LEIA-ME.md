@@ -55,11 +55,13 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Recurso | Versão padrão | Faça Você Mesmo | Feito pra Você | Assinatura da família | Licença Profissional | Extra pago | Como testar |
 |---|---|---|---|---|---|---|---|
 | Álbum no celular (nome, foto, galeria, recado) | Sim | Sim | Sim | Sim | Sim | — | Abrir o link da festa, salvar nome, mandar 2 fotos |
+| Vídeo de até 30 s enviado pelo convidado (capa automática, toca no telão sem som) | Sim | Sim | Sim | Sim | Sim | — | Galeria → escolher um vídeo curto; conferir no álbum e no telão |
 | Fila offline (envia quando a internet volta) | Sim | Sim | Sim | Sim | Sim | — | Modo avião, tirar foto, voltar a internet |
 | Reenvio quando o Google recusa por excesso de envios | Sim | Sim | Sim | Sim | Sim | — | 5 celulares mandando ao mesmo tempo; nenhuma foto perdida |
 | Foto 2048 px + miniatura 640 px | Sim | Sim | Sim | Sim | Sim | — | Ver em `listarFestas()` o MB por foto |
 | Telão com QR e "Acabou de chegar" | Sim | Sim | Sim | Sim | Sim | — | `#telao` → Iniciar telão → mandar foto |
 | QR para imprimir nas mesas | Sim | Sim | Sim | Sim | Sim | — | `#qr` → Imprimir |
+| Área dos pais: trocar nome, idade e paleta | Sim | Sim | Sim | Sim | Sim | — | `#pais` → Dados da festa / Visual da festa |
 | Área dos pais (PIN, ocultar, baixar foto) | Sim | Sim | Sim | Sim | Sim | — | `#pais` → PIN → ocultar uma foto e conferir no telão |
 | ZIP com todas as fotos | Sim | Sim | Sim | Sim | Sim | — | Área dos pais → Preparar ZIP |
 | Aviso por e-mail antes de apagar | Sim | Sim | Sim | Sim | Sim | — | Festa de teste com prazo curto (editar `acessoAte`) |
@@ -90,6 +92,7 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
   - ao mudar `TERMOS_VERSAO`, todos os convidados aceitam de novo.
 
 ## Para o consultor revisar
+- **Vídeos:** até 30 s; acima disso, o celular regrava só o começo em 720p (pede para manter a tela aberta). Limite de 25 MB depois de preparado. O back-end entrega o vídeo (o Drive não toca vídeo direto no navegador): cada exibição baixa o arquivo inteiro, então muitos vídeos pesam no limite diário do Apps Script.
 - **Limites da conta gratuita:**
   - 15 GB de espaço. A ~0,6 MB por foto, mais a miniatura, cabem cerca de 20 mil fotos.
   - 30 execuções simultâneas do Apps Script. O app tenta de novo sozinho quando passa disso.
