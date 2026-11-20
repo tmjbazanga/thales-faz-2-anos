@@ -287,7 +287,7 @@ function pescaZerar_(rec) {
   });
 }
 
-// o que os pais podem mudar sozinhos: nome e idade, paleta, assinatura no telão e textos
+// o que os pais podem mudar sozinhos: nome e idade, paleta, assinatura no telão, playlist e textos
 function festaConfig_(rec, b) {
   return comTrava_(function () {
     const reg = registro_(), r = reg[rec.id];
@@ -297,6 +297,13 @@ function festaConfig_(rec, b) {
     if (b.idade != null) r.publico.idade = Number(b.idade) >= 1 ? Math.min(120, Math.round(Number(b.idade))) : null;
     if (b.boasVindas != null) r.publico.boasVindas = limpar_(b.boasVindas, 160);
     if (b.contato != null) r.contato = limpar_(b.contato, 120);
+    if (b.playlist != null) {
+      if (!(r.publico.modulos || {}).playlist) throw new Error('A playlist não está liberada nesta festa');
+      const txt = String(b.playlist).trim();
+      const m = txt.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(playlist|album)\/([A-Za-z0-9]{10,40})/) || txt.match(/^spotify:(playlist|album):([A-Za-z0-9]{10,40})$/);
+      if (txt && !m) throw new Error('Esse link não é de uma playlist do Spotify');
+      r.publico.playlist = m ? 'https://open.spotify.com/' + m[1] + '/' + m[2] : '';
+    }
     salvarRegistro_(reg);
     return { ok: true, festa: publico_(r) };
   });

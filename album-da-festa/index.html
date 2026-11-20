@@ -315,6 +315,19 @@
   .tl .iniciar .config .info { font-size:13px; color:var(--suave); margin-top:4px; }
   .tl .iniciar .config button { margin:0; font-size:15px; min-height:44px; padding:0 14px; flex:none; }
   .tl .iniciar .config input[type=url] { min-height:44px; }
+  .tl .iniciar .config { gap:14px; }
+  .tl .iniciar .cartao { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; align-items:center; text-align:left; background:none; border:0; border-radius:0; padding:0; box-shadow:none; }
+  .tl .iniciar .cartao + .cartao { border-top:1px solid var(--agua2); padding-top:14px; }
+  .tl .iniciar .cartao .icone { grid-row:span 2; width:52px; height:52px; border-radius:14px; display:grid; place-items:center; background:var(--agua2); color:var(--marinho); }
+  .tl .iniciar .cartao .icone svg.i { width:28px; height:28px; }
+  .tl .iniciar .cartao h3 { margin:0; font-size:19px; color:var(--marinho); }
+  .tl .iniciar .cartao p { margin:0; font-size:14px; color:var(--suave); }
+  .tl .iniciar .cartao .acoes { grid-column:1 / -1; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .tl .iniciar .soltar { grid-column:1 / -1; border:2px dashed var(--agua2); border-radius:14px; padding:14px; text-align:center; color:var(--suave); font-size:14px; transition:background .15s, border-color .15s; }
+  .tl .iniciar .soltar.sobre { background:var(--agua2); border-color:var(--marinho); }
+  .tl .iniciar .soltar video { display:block; width:100%; max-height:150px; border-radius:10px; background:#000; margin-bottom:8px; }
+  .tl .iniciar .ok { color:#1e7a3c; font-weight:700; }
+  .previaSpotify iframe { display:block; width:100%; border:0; border-radius:12px; margin-top:10px; }
   /* ---------- falas do Thales no telão ---------- */
   .falaTl { position:fixed; left:2vw; bottom:3vh; z-index:50; display:flex; align-items:flex-end; gap:1vw; pointer-events:none;
     transform:translateY(120%) rotate(-8deg); opacity:0; transition:transform .8s var(--mola), opacity .4s; max-width:62vw; }
@@ -542,6 +555,7 @@ const CONFIG = {
   LADO_MINI: 640,          // miniatura gerada no celular para grades e telão
   QUALIDADE: 0.85,
   VIDEO_SEG: 30,           // duração máxima de vídeo
+  VIDEO_PREVIA_SEG: 8,     // no telão, o vídeo do convidado passa só os primeiros segundos
   VIDEO_MAX_MB: 25,        // tamanho máximo do vídeo depois de preparado
   VIDEO_DIRETO_MB: 20,     // até este tamanho (mp4/webm), o vídeo vai como foi gravado
   TERMOS_VERSAO: '2026-11-20.2',   // mude a cada nova versão dos textos: o convidado aceita de novo
@@ -625,6 +639,8 @@ const sorteio = (a, b) => a + Math.random() * (b - a);
 const IC = {
   camera: '<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.3l1.4-2h5.6l1.4 2h1.3A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.5"/>',
   galeria: '<path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4.5 14v3.5A2 2 0 0 0 6.5 19.5h11a2 2 0 0 0 2-2V14"/>',
+  filme: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="m10.5 9.5 4 2.5-4 2.5z"/>',
+  musica: '<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
   mais: '<path d="M12 5v14M5 12h14"/>',
   menos: '<path d="M5 12h14"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -1433,13 +1449,21 @@ function telao() {
       ${mod('playlist') ? '<div class="spotifyTl" id="spotifyTl" hidden><div id="spotifyFrame"></div></div>' : ''}
       <div class="iniciar" id="iniciar"><div><h2>Telão da festa</h2>
         ${mod('video') || mod('playlist') ? `<div class="config">
-          ${mod('video') ? `<div><label>Vídeo do aniversário</label>
-            <div class="linha"><button class="btn-sec" id="escolherVideo">Escolher vídeo</button><span class="info" id="videoInfo">Verificando…</span></div>
+          ${mod('video') ? `<div class="cartao">
+            <span class="icone">${ic('filme')}</span>
+            <h3>Tem um vídeo para passar no telão?</h3>
+            <p>Suba aqui. Ele fica guardado neste computador e toca quando vocês quiserem.</p>
+            <div class="soltar" id="soltarVideo"><div id="videoInfo">Verificando…</div></div>
+            <div class="acoes"><button class="btn-sec" id="escolherVideo">${ic('galeria')}<span id="txtEscolher">Subir vídeo</span></button>
+              <span class="info">Na festa: botão "Tocar vídeo" na área dos pais, ou tecla V.</span></div>
             <input type="file" id="arquivoVideo" accept="video/*" hidden>
-            <div class="info">Fica guardado neste computador. Para tocar: botão na área dos pais ou tecla V.</div></div>` : ''}
-          ${mod('playlist') ? `<div><label for="linkSpotify">Playlist do Spotify</label>
-            <input type="url" id="linkSpotify" placeholder="Cole o link da playlist" value="${esc(Spotify.link())}">
-            <div class="info">Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.</div></div>` : ''}
+          </div>` : ''}
+          ${mod('playlist') ? `<div class="cartao">
+            <span class="icone">${ic('musica')}</span>
+            <h3>Música da festa</h3>
+            <p id="playlistInfo">${Spotify.uri(Spotify.link()) ? '<span class="ok">✓ Playlist escolhida.</span> Começa a tocar quando o telão abrir.' : 'Nenhuma playlist ainda. Cole o link do Spotify na área dos pais, em "Música no telão".'}</p>
+            <div class="acoes"><span class="info">Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.</span></div>
+          </div>` : ''}
         </div>` : ''}
         <button id="btIniciar">Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p></div></div>
       ${mod('video') ? '<div class="videoTl" id="videoTl" hidden><video playsinline></video><button class="fechar" onclick="pararVideo()">Fechar vídeo</button></div>' : ''}
@@ -1451,14 +1475,20 @@ function telao() {
   qr($('#qrPeq'), linkConvidado()); qr($('#qrGrande'), linkConvidado());
   $('#btIniciar').addEventListener('click', iniciarTelao);
   if (mod('video')) {
-    $('#escolherVideo').addEventListener('click', () => $('#arquivoVideo').click());
-    $('#arquivoVideo').addEventListener('change', async e => {
-      const f = e.target.files[0]; if (!f) return;
-      $('#videoInfo').textContent = 'Guardando…';
-      try { await VideoLocal.salvar(f); videoURL = null; $('#videoInfo').textContent = '✓ ' + f.name; }
+    const zona = $('#soltarVideo');
+    const guardar = async f => {
+      if (!f || !/^video\//.test(f.type || '') && !/\.(mp4|mov|m4v|webm)$/i.test(f.name || '')) return toast('Escolha um arquivo de vídeo');
+      $('#videoInfo').textContent = 'Guardando o vídeo…';
+      try { await VideoLocal.salvar(f); videoURL = null; mostrarVideoGuardado(f); }
       catch { $('#videoInfo').textContent = 'Não deu para guardar. Tente de novo.'; }
-    });
-    VideoLocal.ler().then(f => { if ($('#videoInfo')) $('#videoInfo').textContent = f ? '✓ ' + (f.name || 'vídeo guardado') : 'Nenhum vídeo escolhido'; });
+    };
+    $('#escolherVideo').addEventListener('click', () => $('#arquivoVideo').click());
+    zona.addEventListener('click', () => $('#arquivoVideo').click());
+    $('#arquivoVideo').addEventListener('change', e => guardar(e.target.files[0]));
+    zona.addEventListener('dragover', e => { e.preventDefault(); zona.classList.add('sobre'); });
+    zona.addEventListener('dragleave', () => zona.classList.remove('sobre'));
+    zona.addEventListener('drop', e => { e.preventDefault(); zona.classList.remove('sobre'); guardar(e.dataTransfer.files[0]); });
+    VideoLocal.ler().then(mostrarVideoGuardado);
     $('#videoTl video').addEventListener('ended', pararVideo);
   }
   if (EM_PREVIA()) { T.fotos = []; atualizarVazio(); return; }
@@ -1466,7 +1496,7 @@ function telao() {
 }
 async function iniciarTelao() {
   Balbucio.destravar();
-  if (mod('playlist')) { local.set('spotify', ($('#linkSpotify')?.value || '').trim()); Spotify.montar(); }
+  if (mod('playlist')) Spotify.montar();
   $('#iniciar')?.remove();
   try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.(); } catch {}
   manterAcesa();
@@ -1558,7 +1588,7 @@ async function proximaFoto() {
   timers.push(setTimeout(proximaFoto, CONFIG.TROCA_SEGUNDOS * 1000 + (f.nova ? 3000 : 0)));
 }
 
-// vídeo no telão: toca sem som e passa para a próxima quando acaba (máx. 30 s); se não carregar, mostra a capa
+// vídeo do convidado no telão: só uma prévia sem som (primeiros segundos) e passa para a próxima; se não carregar, mostra a capa
 async function mostrarVideoTelao(f) {
   const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto';
   let ok = false;
@@ -1575,9 +1605,10 @@ async function mostrarVideoTelao(f) {
   requestAnimationFrame(() => { el.classList.add('vis'); velho.classList.remove('vis'); });
   if (f.nova) Tema.novaFoto();
   if (ok) { try { await v.play(); } catch {} }
-  const dur = ok ? Math.min((v.duration || f.dur || 10) + 1, CONFIG.VIDEO_SEG + 2) : CONFIG.TROCA_SEGUNDOS;
+  const previa = CONFIG.VIDEO_PREVIA_SEG;
+  const dur = ok ? Math.min(v.duration || f.dur || previa, previa) + 0.8 : CONFIG.TROCA_SEGUNDOS;
   let foi = false; const seguir = () => { if (foi) return; foi = true; proximaFoto(); };
-  if (ok) v.onended = () => setTimeout(seguir, 600);
+  if (ok) { v.onended = () => setTimeout(seguir, 600); v.ontimeupdate = () => { if (v.currentTime >= previa) { v.pause(); v.ontimeupdate = null; } }; }
   timers.push(setTimeout(seguir, dur * 1000));
 }
 
@@ -1640,9 +1671,17 @@ function pais() {
       ${/\[a definir/.test(CONFIG.TERMOS + CONFIG.PRIVACIDADE) ? '<div class="aviso" style="margin:16px 0 0">Os termos de uso e o aviso de privacidade ainda estão em rascunho. Publique os textos antes de abrir o envio para os convidados.</div>' : ''}
       <div class="group-title"><span>Prazo e download</span></div>
       <div class="card" id="cardPrazo"><p style="margin:0;color:var(--suave);font-size:14px">Carregando…</p></div>
+      ${mod('playlist') ? `<div class="group-title"><span>Música no telão</span></div>
+      <form class="card" id="formPlaylist">
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Tem uma playlist para tocar na festa? Cole aqui o link do Spotify. No app: abra a playlist, toque em <b>⋯</b> → <b>Compartilhar</b> → <b>Copiar link</b>.</p>
+        <div class="field" style="margin:0"><label for="linkPlaylist">Link da playlist</label>
+          <div class="linhaNome"><input id="linkPlaylist" type="url" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(FESTA.playlist || '')}"><button>Salvar</button></div></div>
+        <div id="playlistPrevia">${blocoPlaylist()}</div>
+        <p style="margin:10px 0 0;color:var(--suave);font-size:13px">O telão pega a playlist nova em até 15 segundos.</p>
+      </form>` : ''}
       ${mod('video') ? `<div class="group-title"><span>Vídeo no telão</span></div>
       <div class="card">
-        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Toca o vídeo em tela cheia no telão (em até 5 segundos) e pausa a música. Quando acaba, as fotos e a música voltam sozinhas.</p>
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">O vídeo é escolhido no computador do telão, na tela de abertura ("Tem um vídeo para passar no telão?"). Daqui, vocês tocam em tela cheia: a música pausa e, quando o vídeo acaba, as fotos e a música voltam sozinhas.</p>
         <div class="momentos"><button data-momento="video">Tocar vídeo</button><button class="btn-sec" data-momento="pararvideo">Parar vídeo</button></div>
       </div>` : ''}
       ${FESTA.personagem ? `<div class="group-title"><span>${esc(N())} fala no telão</span></div>
@@ -1707,6 +1746,29 @@ function desenharPescaPais() {
       <button class="btn-sec" data-devolver="${esc(s.n)}" aria-label="Devolver o baú ${esc(s.n)} para a pescaria">Devolver</button></li>`).join('')
     : '<li><span class="q">Ninguém pescou ainda.</span></li>';
 }
+function blocoPlaylist() {
+  return FESTA.playlist ? `<div class="previaSpotify">${previaSpotify(FESTA.playlist)}</div>
+    <button type="button" class="btn-txt" data-pais="semplaylist" style="margin-top:6px">Tirar a playlist</button>` : '';
+}
+function previaSpotify(link) {
+  const m = String(link || '').match(/(playlist|album)\/([A-Za-z0-9]{10,40})/);
+  return m ? `<iframe title="Prévia da playlist" src="https://open.spotify.com/embed/${m[1]}/${m[2]}" height="152" loading="lazy" allow="encrypted-media"></iframe>` : '';
+}
+async function salvarPlaylist(link) {
+  if (await postPais({ acao: 'festa-config', playlist: link }, link ? 'Playlist salva. O telão começa a tocar em até 15 segundos.' : 'Playlist removida do telão')) {
+    const m = link.match(/(playlist|album)\/([A-Za-z0-9]{10,40})/);
+    atualizarFesta({ ...FESTA, playlist: m ? `https://open.spotify.com/${m[1]}/${m[2]}` : '' });
+    if ($('#playlistPrevia')) $('#playlistPrevia').innerHTML = blocoPlaylist();
+    if ($('#linkPlaylist')) $('#linkPlaylist').value = FESTA.playlist || '';
+  }
+}
+document.addEventListener('submit', e => {
+  if (location.hash !== '#pais' || e.target.id !== 'formPlaylist') return;
+  e.preventDefault();
+  const link = $('#linkPlaylist').value.trim();
+  if (link && !/open\.spotify\.com\/(intl-[a-z-]+\/)?(playlist|album)\/[A-Za-z0-9]{10,}|^spotify:(playlist|album):/.test(link)) { $('#linkPlaylist').focus(); return toast('Esse link não é de uma playlist do Spotify'); }
+  salvarPlaylist(link);
+});
 async function postPais(obj, ok) {
   if (EM_PREVIA()) { toast('Na prévia nada é enviado'); return true; }
   try { await apiPost({ ...obj, token: sessionStorage.getItem('album-token') }); if (ok) toast(ok); await carregarPais(); return true; }
@@ -1774,6 +1836,7 @@ document.addEventListener('click', async e => {
   const t = e.target;
   const acao = t.closest('[data-pais]')?.dataset.pais;
   if (acao === 'sair') { sessionStorage.removeItem('album-token'); location.hash = ''; return; }
+  if (acao === 'semplaylist') return salvarPlaylist('');
   if (acao === 'compartilhar') {
     const url = linkConvidado();
     try { if (navigator.share) await navigator.share({ title: 'Álbum da festa de ' + N(), text: 'Mande suas fotos da festa de ' + N() + '!', url }); else { await navigator.clipboard.writeText(url); toast('Link copiado'); } } catch {}
@@ -2322,15 +2385,18 @@ const VideoLocal = {
 };
 const Spotify = {
   ctrl: null, tocando: false,
-  link() { return local.get('spotify', CONFIG.SPOTIFY_PLAYLIST || ''); },
+  link() { return FESTA.playlist || CONFIG.SPOTIFY_PLAYLIST || ''; },
   uri(link) {
     const m = String(link || '').match(/(playlist|album|track)[/:]([A-Za-z0-9]{10,})/);
     return m ? `spotify:${m[1]}:${m[2]}` : '';
   },
   montar() {
     const uri = this.uri(this.link()), caixa = $('#spotifyTl');
-    if (!uri || !caixa) return;
+    if (!caixa) return;
+    if (!uri) { caixa.hidden = true; try { this.ctrl?.pause(); } catch {} return; }
     caixa.hidden = false;
+    if (this.ctrl) { if (this.uriAtual !== uri) { this.uriAtual = uri; try { this.ctrl.loadUri(uri); this.ctrl.play(); } catch {} } return; }
+    this.uriAtual = uri;
     const criar = API => API.createController($('#spotifyFrame'), { uri, width: '100%', height: 80 }, c => {
       this.ctrl = c;
       c.addListener('playback_update', e => { this.tocando = !e.data.isPaused; });
@@ -2346,12 +2412,24 @@ const Spotify = {
   voltar() { if (this.ctrl && this.estavaTocando) try { this.ctrl.resume(); } catch {} }
 };
 let videoURL = null;
+// mostra na tela "Iniciar telão" o vídeo guardado (prévia sem som, nome e duração)
+function mostrarVideoGuardado(f) {
+  const info = $('#videoInfo'); if (!info) return;
+  const txt = $('#txtEscolher');
+  if (!f) { info.innerHTML = 'Arraste o vídeo para cá ou toque em <b>Subir vídeo</b>.'; if (txt) txt.textContent = 'Subir vídeo'; return; }
+  if (txt) txt.textContent = 'Trocar vídeo';
+  const url = URL.createObjectURL(f);
+  info.innerHTML = `<video muted playsinline preload="metadata" src="${url}#t=1"></video><span class="ok">✓ Vídeo guardado</span> · <span id="videoNome"></span><span id="videoDur"></span>`;
+  $('#videoNome').textContent = f.name || 'vídeo';
+  const v = info.querySelector('video');
+  v.addEventListener('loadedmetadata', () => { const d = Math.round(v.duration || 0); if (d) $('#videoDur').textContent = ` · ${Math.floor(d / 60)}:${String(d % 60).padStart(2, '0')}`; });
+}
 async function tocarVideo() {
   const el = $('#videoTl'), v = $('#videoTl video');
   if (!el || !v) return;
   if (!videoURL) {
     const f = await VideoLocal.ler();
-    if (!f) { toast('Nenhum vídeo escolhido neste computador. Escolha na tela "Iniciar telão".'); return; }
+    if (!f) { toast('Nenhum vídeo guardado neste computador. Suba o vídeo na tela de abertura do telão.'); return; }
     videoURL = URL.createObjectURL(f);
   }
   Spotify.pausar();
@@ -2528,6 +2606,7 @@ function atualizarFesta(f, doTelao = false) {
   FESTA = { ...FESTA_PADRAO, ...f };
   local.set('festa', FESTA);
   document.title = 'Álbum da festa · ' + N();
+  if (doTelao && T.rodando && mod('playlist')) Spotify.montar();   // playlist trocada na área dos pais
   if (antes === chave(FESTA)) return;
   // telão rodando: troca as cores e a arte sem parar as fotos; nas outras telas, redesenha
   if (doTelao && T.rodando) carregarTema().then(() => { const h = $('.heroTl'); if (h) h.innerHTML = heroBaloes(); });
