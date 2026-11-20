@@ -234,7 +234,9 @@
   .tl .thalesTl { position:absolute; left:3vw; bottom:4vh; width:clamp(110px, 13vw, 260px); z-index:4; }
   .tl .baleiaTl { position:absolute; right:3vw; top:6vh; width:clamp(140px, 15vw, 300px); z-index:4; }
   .tl .baleiaTl .jato { transform:scale(1.8); transform-origin:0 0; }
-  .tl .qrbox { position:absolute; right:3vw; bottom:6vh; z-index:4; width:clamp(160px, 16vw, 300px); background:#fff;
+  .tl .ladoTl { position:absolute; right:3vw; bottom:6vh; z-index:6; display:flex; flex-direction:column; align-items:flex-end; gap:12px; pointer-events:none; }
+  .tl .ladoTl > * { pointer-events:auto; }
+  .tl .qrbox { position:relative; z-index:4; width:clamp(240px, 16vw, 300px); background:#fff; box-sizing:border-box;
     border:2px solid var(--agua2); border-radius:26px; padding:clamp(12px, 1.2vw, 22px); text-align:center; box-shadow:0 18px 40px rgba(var(--sombra), .18); }
   .tl .qrbox .pincel { font-size:clamp(14px, 1.3vw, 28px); margin-bottom:.5em; white-space:nowrap; padding:4px 16px 6px; }
   .tl .qrbox small { display:block; font-size:clamp(11px, .9vw, 17px); color:var(--suave); margin-top:.5em; }
@@ -305,7 +307,7 @@
   .videoTl video { width:100%; height:100%; object-fit:contain; background:#000; }
   .videoTl .fechar { position:absolute; right:16px; top:16px; opacity:0; transition:opacity .3s; cursor:pointer; background:rgba(255,255,255,.15); color:#fff; border:0; }
   .videoTl:hover { cursor:default; } .videoTl:hover .fechar { opacity:1; }
-  .spotifyTl { position:absolute; right:3vw; top:calc(6vh + 11vw); z-index:6; width:clamp(240px, 16vw, 300px); border-radius:14px; overflow:hidden;
+  .spotifyTl { position:relative; width:clamp(240px, 16vw, 300px); height:80px; border-radius:14px; overflow:hidden; box-sizing:border-box;
     box-shadow:0 10px 26px rgba(var(--sombra), .18); cursor:default; background:#fff; }
   .spotifyTl iframe { display:block; border:0; }
   .tl .iniciar .config { display:grid; gap:12px; text-align:left; width:min(520px, 88vw); margin:20px auto 0; background:#fff; border:2px solid var(--agua2);
@@ -1439,20 +1441,22 @@ function telao() {
       <div class="contador" id="contador" hidden></div>
       ${FESTA.personagem ? `<div class="bicho personagemTl thalesTl"><span class="flutua" style="display:block;animation-duration:3.5s"><img class="personagem-foto" src="${esc(personagemSrc(500))}" alt=""></span></div>` : ''}
       <div class="palco"><div class="camada" id="c0"></div><div class="camada" id="c1"></div></div>
-      <div class="qrbox" id="qrbox" hidden><div class="pincel">Mande sua foto!</div><div class="qr" id="qrPeq"></div><small>Aponte a câmera do celular</small></div>
+      <div class="ladoTl">
+        ${mod('playlist') ? '<div class="spotifyTl" id="spotifyTl" hidden><div id="spotifyFrame"></div></div>' : ''}
+        <div class="qrbox" id="qrbox" hidden><div class="pincel">Mande sua foto!</div><div class="qr" id="qrPeq"></div><small>Aponte a câmera do celular</small></div>
+      </div>
       <div class="vazioTl" id="vazioTl" hidden>
         <div class="txt"><h2>Tire uma foto e mande pro álbum!</h2><p>Aponte a câmera do celular para o código. Sua foto aparece aqui na tela.</p></div>
         <div class="qrG qr" id="qrGrande"></div>
       </div>
       ${mod('pescaria') ? '<div class="faixaPesca" id="faixaPesca" hidden>A pescaria está aberta! Pesque sua lembrancinha pelo celular</div>' : ''}
       ${FESTA.assinatura !== false ? `<div class="assinaturaTl">Quer um álbum assim na sua festa? <b>${esc(CONFIG.LINK_VENDA.replace(/^https?:\/\//, ''))}</b></div>` : ''}
-      ${mod('playlist') ? '<div class="spotifyTl" id="spotifyTl" hidden><div id="spotifyFrame"></div></div>' : ''}
       <div class="iniciar" id="iniciar"><div><h2>Telão da festa</h2>
         ${mod('video') || mod('playlist') ? `<div class="config">
           ${mod('video') ? `<div class="cartao">
             <span class="icone">${ic('filme')}</span>
             <h3>Tem um vídeo para passar no telão?</h3>
-            <p>Suba aqui. Ele fica guardado neste computador e toca quando vocês quiserem.</p>
+            <p>Suba aqui. Ele fica guardado no telão do app e toca quando vocês quiserem.</p>
             <div class="soltar" id="soltarVideo"><div id="videoInfo">Verificando…</div></div>
             <div class="acoes"><button class="btn-sec" id="escolherVideo">${ic('galeria')}<span id="txtEscolher">Subir vídeo</span></button>
               <span class="info">Na festa: botão "Tocar vídeo" na área dos pais, ou tecla V.</span></div>
@@ -1681,7 +1685,7 @@ function pais() {
       </form>` : ''}
       ${mod('video') ? `<div class="group-title"><span>Vídeo no telão</span></div>
       <div class="card">
-        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">O vídeo é escolhido no computador do telão, na tela de abertura ("Tem um vídeo para passar no telão?"). Daqui, vocês tocam em tela cheia: a música pausa e, quando o vídeo acaba, as fotos e a música voltam sozinhas.</p>
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">O vídeo é escolhido no telão do app, na tela de abertura ("Tem um vídeo para passar no telão?"). Daqui, vocês tocam em tela cheia: a música pausa e, quando o vídeo acaba, as fotos e a música voltam sozinhas.</p>
         <div class="momentos"><button data-momento="video">Tocar vídeo</button><button class="btn-sec" data-momento="pararvideo">Parar vídeo</button></div>
       </div>` : ''}
       ${FESTA.personagem ? `<div class="group-title"><span>${esc(N())} fala no telão</span></div>
@@ -2429,7 +2433,7 @@ async function tocarVideo() {
   if (!el || !v) return;
   if (!videoURL) {
     const f = await VideoLocal.ler();
-    if (!f) { toast('Nenhum vídeo guardado neste computador. Suba o vídeo na tela de abertura do telão.'); return; }
+    if (!f) { toast('Nenhum vídeo guardado no telão do app. Suba o vídeo na tela de abertura do telão.'); return; }
     videoURL = URL.createObjectURL(f);
   }
   Spotify.pausar();
