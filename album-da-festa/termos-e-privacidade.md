@@ -1,5 +1,5 @@
 # Álbum da Festa — Termos de Uso e Aviso de Privacidade
-Versão 2026-11-20.2 (a mesma de `TERMOS_VERSAO` no index.html)
+Versão 2026-11-20.3 (a mesma de `TERMOS_VERSAO` no index.html)
 
 ## Termos de uso
 ### 1. Quem somos e o que este serviço faz
@@ -12,13 +12,13 @@ Quem contrata é o **organizador** (o pai, a mãe ou o profissional de festa). Q
 
 ### 3. O que está incluído em cada plano
 
-- **Faça Você Mesmo:** álbum por QR code, telão ao vivo com o nome de quem enviou, tema neutro com nome e cores da festa e download em ZIP. Envio de fotos por 30 dias e acesso por 90 dias.
+- **Faça Você Mesmo:** álbum por QR code, fotos e vídeos curtos, telão ao vivo com o nome de quem enviou, música e vídeo da família no telão, tema neutro com nome e cores da festa e download em ZIP. Envio de fotos por 30 dias e acesso por 90 dias.
 
-- **Feito pra Você:** tudo do anterior, mais tema personalizado, papelaria para imprimir, vídeo e playlist no telão. A pescaria de lembrancinhas é um extra contratado à parte. Envio por 90 dias e acesso por 365 dias.
+- **Feito pra Você:** tudo do anterior, mais montagem feita por nós a partir de um formulário respondido depois do pagamento, tema personalizado e papelaria para imprimir. Envio por 90 dias e acesso por 365 dias.
 
 - **Licença Profissional:** tudo do Feito pra Você, para vários eventos, com painel profissional e a marca do profissional no telão. Envio e acesso enquanto a assinatura estiver ativa.
 
-- **Assinatura anual da família:** duas festas montadas no ano, com o escopo do Feito pra Você. Envio por 90 dias por festa e acesso por 365 dias.
+- **Assinatura anual da família:** festas ilimitadas durante 12 meses, montadas pela própria família com o escopo do Faça Você Mesmo. Em cada festa, envio de fotos por 30 dias e acesso por 90 dias.
 
 
 ### 4. Preço e pagamento

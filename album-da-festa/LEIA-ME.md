@@ -30,7 +30,12 @@ Suba a pasta inteira no GitHub Pages (ou outra hospedagem estática). Não há u
   1. Antes de rodar `gerarCodigo()`, ajuste no código `DEGRAU_DO_CODIGO` e `EXTRAS_DO_CODIGO`.
   2. Rode `gerarCodigo()` e mande o código ao cliente.
   3. O cliente abre `SEU-SITE/#criar`, preenche os passos, confere a prévia, cola o código e cria.
-- **Feito pra Você:** com as respostas do formulário de briefing, você mesmo preenche `#criar`. No campo "Código", use a chave de administrador.
+- **Feito pra Você:** depois do pagamento, a família recebe o link `SEU-SITE/#briefing` e responde o assistente (cores, nome, data, PIN, e-mail, tema desejado e observações). O pedido chega por e-mail em albumdafesta.app@gmail.com e fica na pasta `_briefings`. No Apps Script:
+  1. ponha o protocolo (BRF-…) em `BRIEFING_ALVO` e rode `montarBriefing()`: a festa é criada com o PIN que a família escolheu;
+  2. aplique o tema pedido com `trocarTema()`, se houver;
+  3. rode `enviarLinksBriefing()`: a família recebe os 4 links por e-mail.
+  `listarBriefings()` mostra os pedidos e o status de cada um.
+- **Assinatura da família:** com `DEGRAU_DO_CODIGO = 'familia'`, `gerarCodigo()` cria um código que vale para festas ilimitadas por 12 meses. `renovarAssinatura()` (com `CODIGO_ALVO`) estende por mais 12 meses.
 - **Ao final**, o assistente mostra 4 links: convidados, telão, área dos pais e QR para imprimir.
 
 ## Funções do administrador (editor do Apps Script)
@@ -43,7 +48,7 @@ Suba a pasta inteira no GitHub Pages (ou outra hospedagem estática). Não há u
 |---|---|---|
 | Faça Você Mesmo | 30 dias | 90 dias |
 | Feito pra Você | 90 dias | 365 dias |
-| Assinatura da família | 90 dias por festa | 365 dias |
+| Assinatura da família (festas ilimitadas por 12 meses) | 30 dias por festa | 90 dias por festa |
 | Licença Profissional | enquanto ativa (renovar por `renovarAcesso`) | idem |
 
 Os prazos contam da data da festa. O gatilho diário segue esta ordem:
@@ -69,11 +74,11 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Foto do aniversariante falando no telão | Sim (se enviar foto) | Sim | Sim | Sim | Sim | — | `#criar` passo 4 com foto → telão → mandar foto |
 | Assinatura no telão (desligável) | Sim | Sim | Sim | Sim | Sim | — | Área dos pais → Telão → desmarcar |
 | Termos e privacidade no primeiro acesso | Sim | Sim | Sim | Sim | Sim | — | Abrir o link em janela anônima |
-| Montagem pelo assistente | — | Cliente monta | Você monta (briefing) | Cliente monta | Cliente monta | — | `#criar` |
+| Montagem pelo assistente | — | Cliente monta | Você monta (briefing em `#briefing` depois do pagamento) | Cliente monta, festas ilimitadas | Cliente monta | — | `#criar` · `#briefing` |
 | Tema personalizado (ex.: Fundo do Mar) | — | — | Sim | Sim | Sim | Sim | festa.json com `"tema": "fundo-do-mar"` |
-| Pescaria de lembrancinhas | — | — | — | — | — | Sim | `liberarExtra()` → `#pescar` |
-| Vídeo no telão | — | — | Sim | Sim | Sim | Sim | Telão → "Tem um vídeo para passar no telão?" → Subir vídeo (ou arrastar) → área dos pais → Tocar vídeo |
-| Playlist do Spotify no telão | — | — | Sim | Sim | Sim | Sim | Área dos pais → Música no telão → colar link do Spotify → conferir a prévia; o telão começa a tocar em até 15 s |
+| Pescaria de lembrancinhas (não divulgada na página) | — | — | — | — | — | Sim | `liberarExtra()` → `#pescar` |
+| Vídeo no telão | Sim | Sim | Sim | Sim | Sim | — | Telão → "Tem um vídeo para passar no telão?" → Subir vídeo (ou arrastar) → área dos pais → Tocar vídeo |
+| Playlist do Spotify no telão | Sim | Sim | Sim | Sim | Sim | — | Área dos pais → Música no telão → colar link do Spotify → conferir a prévia; o telão começa a tocar em até 15 s |
 | Papelaria pronta | — | — | Sim | Sim | Sim | Sim | Fora do app (arquivo à parte) |
 | Mais tempo de álbum no ar | — | — | — | — | — | Sim | `renovarAcesso()` |
 
@@ -104,5 +109,5 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 - **`LINK_VENDA`:** a definir.
 - **Ícones:** `icon-192.png` e `icon-512.png` ainda são os da festa do Thales. Trocar por um ícone do produto.
 - **Economia de espaço:** medir na festa de teste (2048 px contra 2560 px da versão do Thales).
-- **Back-end:** publicado na conta do produto (albumdafesta.app@gmail.com), versão 2. Testado de verdade: criação de festa, PIN, sessão, fotos, vídeo, nome/idade, paleta e playlist. Falta o teste com celulares e telão na festa de teste (GATE 3).
+- **Back-end:** publicado na conta do produto (albumdafesta.app@gmail.com), versão 3. Testado de verdade: criação de festa, PIN, sessão, fotos, vídeo, nome/idade, paleta e playlist. Falta o teste com celulares e telão na festa de teste (GATE 3).
 - **Vídeo da festa no telão:** fica salvo só no aparelho e no navegador em que foi enviado. O app avisa isso no telão e na área dos pais.
