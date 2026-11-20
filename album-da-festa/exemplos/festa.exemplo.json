@@ -1,0 +1,29 @@
+{
+  "versao": 1,
+  "id": "lia-5-x7k2",
+  "aniversariante": "Lia",
+  "idade": 5,
+  "data": "2026-12-13",
+  "horario": "15:00",
+  "local": "Buffet Casa da Árvore",
+  "tema": "baloes",
+  "paleta": "colorida",
+  "cores": null,
+  "personagem": "",
+  "boasVindas": "Tire fotos da festa e mande para o álbum. Elas aparecem no telão!",
+  "modulos": {
+    "album": true,
+    "telao": true,
+    "video": false,
+    "playlist": false,
+    "pescaria": false
+  },
+  "baus": 30,
+  "contato": "familia@exemplo.com",
+  "degrau": "diy",
+  "acesso": {
+    "envioAte": "2027-01-12",
+    "acessoAte": "2027-03-13"
+  },
+  "assinatura": true
+}
