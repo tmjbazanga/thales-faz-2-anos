@@ -69,7 +69,7 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Termos e privacidade no primeiro acesso | Sim | Sim | Sim | Sim | Sim | — | Abrir o link em janela anônima |
 | Montagem pelo assistente | — | Cliente monta | Você monta (briefing) | Cliente monta | Cliente monta | — | `#criar` |
 | Tema personalizado (ex.: Fundo do Mar) | — | — | Sim | Sim | Sim | Sim | festa.json com `"tema": "fundo-do-mar"` |
-| Pescaria de lembrancinhas | — | — | Sim | Sim | Sim | Sim | `liberarExtra()` → `#pescar` |
+| Pescaria de lembrancinhas | — | — | — | — | — | Sim | `liberarExtra()` → `#pescar` |
 | Vídeo no telão | — | — | Sim | Sim | Sim | Sim | `liberarExtra()` → telão → escolher vídeo → área dos pais → Tocar vídeo |
 | Playlist do Spotify no telão | — | — | Sim | Sim | Sim | Sim | `liberarExtra()` → colar link na tela "Iniciar telão" |
 | Papelaria pronta | — | — | Sim | Sim | Sim | Sim | Fora do app (arquivo à parte) |
@@ -96,7 +96,7 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
   - 15 MB por foto.
   - 6 minutos por execução: o ZIP é montado em partes e continua de onde parou.
 - **O que fica no Drive:** a foto principal e a miniatura de 640 px ficam visíveis a quem tiver o link do arquivo. A lista de fotos só sai para quem abre o link da festa.
-- **Termos e privacidade:** publicados no app (versão 2026-11-20, também em `termos-e-privacidade.md`). É o esqueleto sem as marcas [ADV]. Faltam ainda: identificação do fornecedor, cancelamento e reembolso, base legal, canal do titular e encarregado (DPO). Revisão jurídica antes da primeira venda.
+- **Termos e privacidade:** publicados no app (versão 2026-11-20.2, também em `termos-e-privacidade.md`). É o esqueleto sem as marcas [ADV]. Faltam ainda: identificação do fornecedor, cancelamento e reembolso, base legal, canal do titular e encarregado (DPO). Revisão jurídica antes da primeira venda.
 - **Licença Profissional:** os termos prometem "marca do profissional no telão" e "painel profissional", e isso ainda não existe no app.
 - **`LINK_VENDA`:** a definir.
 - **Ícones:** `icon-192.png` e `icon-512.png` ainda são os da festa do Thales. Trocar por um ícone do produto.

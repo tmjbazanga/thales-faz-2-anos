@@ -1,5 +1,5 @@
 # Álbum da Festa — Termos de Uso e Aviso de Privacidade
-Versão 2026-11-20 (a mesma de `TERMOS_VERSAO` no index.html)
+Versão 2026-11-20.2 (a mesma de `TERMOS_VERSAO` no index.html)
 
 ## Termos de uso
 ### 1. Quem somos e o que este serviço faz
@@ -14,7 +14,7 @@ Quem contrata é o **organizador** (o pai, a mãe ou o profissional de festa). Q
 
 - **Faça Você Mesmo:** álbum por QR code, telão ao vivo com o nome de quem enviou, tema neutro com nome e cores da festa e download em ZIP. Envio de fotos por 30 dias e acesso por 90 dias.
 
-- **Feito pra Você:** tudo do anterior, mais tema personalizado, papelaria para imprimir, vídeo e playlist no telão e pescaria de lembrancinhas. Envio por 90 dias e acesso por 365 dias.
+- **Feito pra Você:** tudo do anterior, mais tema personalizado, papelaria para imprimir, vídeo e playlist no telão. A pescaria de lembrancinhas é um extra contratado à parte. Envio por 90 dias e acesso por 365 dias.
 
 - **Licença Profissional:** tudo do Feito pra Você, para vários eventos, com painel profissional e a marca do profissional no telão. Envio e acesso enquanto a assinatura estiver ativa.
 

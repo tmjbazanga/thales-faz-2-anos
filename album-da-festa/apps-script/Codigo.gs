@@ -31,8 +31,8 @@ const CFG = {
   },
   MODULOS_PADRAO: { album: true, telao: true, video: false, playlist: false, pescaria: false },
   EXTRAS: ['video', 'playlist', 'pescaria'],
-  // pelos termos, Feito pra Você, Assinatura da família e Licença Profissional já incluem os extras
-  EXTRAS_INCLUSOS: { diy: [], fpv: ['video', 'playlist', 'pescaria'], familia: ['video', 'playlist', 'pescaria'], pro: ['video', 'playlist', 'pescaria'] }
+  // pelos termos, Feito pra Você, Assinatura da família e Licença Profissional já incluem vídeo e playlist; a pescaria é sempre extra pago
+  EXTRAS_INCLUSOS: { diy: [], fpv: ['video', 'playlist'], familia: ['video', 'playlist'], pro: ['video', 'playlist'] }
 };
 
 /* ===================== rotas ===================== */
