@@ -182,7 +182,8 @@
     background:rgba(251,248,241,.9); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
   .acao::before { content:""; position:absolute; left:0; right:0; top:-10px; height:12px;
     background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8 V12 H0Z' fill='%23fbf8f1' fill-opacity='.9'/%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8' fill='none' stroke='%238ec6e4' stroke-width='2'/%3E%3C/svg%3E") repeat-x; }
-  .acao .in { max-width:560px; margin:0 auto; display:grid; grid-template-columns:1.6fr 1fr; gap:10px; }
+  .acao .in { max-width:560px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .acao .btn { padding-left:10px; padding-right:10px; line-height:1.15; text-align:center; }
   .acao .btn { min-height:58px; font-size:18px; border-radius:20px; }
   .acao .btn:first-child { box-shadow:0 8px 18px rgba(var(--sombra), .3); }
   .acao .btn svg.i { width:24px; height:24px; }
@@ -623,7 +624,7 @@ const sorteio = (a, b) => a + Math.random() * (b - a);
 /* ícones (traço, um só estilo) */
 const IC = {
   camera: '<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.3l1.4-2h5.6l1.4 2h1.3A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.5"/>',
-  galeria: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 4.5-4.5 3.5 3.5 2.5-2.5L20 18"/>',
+  galeria: '<path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4.5 14v3.5A2 2 0 0 0 6.5 19.5h11a2 2 0 0 0 2-2V14"/>',
   mais: '<path d="M12 5v14M5 12h14"/>',
   menos: '<path d="M5 12h14"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -1208,10 +1209,10 @@ function convidado() {
         <p class="rodape"><a href="#pais">Área dos pais</a></p>
       </main>
     </div>
-    ${aberto ? `<nav class="acao" aria-label="Enviar fotos">
+    ${aberto ? `<nav class="acao" aria-label="${videoLiberado() ? 'Enviar fotos e vídeos' : 'Enviar fotos'}">
       <div class="in">
-        <label class="btn" for="camera" data-pede-nome>${ic('camera')}Tirar foto</label>
-        <label class="btn btn-sec" for="galeria" data-pede-nome>${ic('galeria')}Galeria</label>
+        <label class="btn" for="camera" data-pede-nome>${ic('camera')}Câmera</label>
+        <label class="btn btn-sec" for="galeria" data-pede-nome>${ic('galeria')}Do celular</label>
       </div>
     </nav>
     <input class="esconder" type="file" id="camera" accept="${videoLiberado() ? 'image/*,video/*' : 'image/*'}" capture="environment" tabindex="-1">
@@ -1296,7 +1297,7 @@ function renderGrade() {
     const meus = local.get('meus', []);
     el.innerHTML = meus.length
       ? `<div class="grade">${meus.map((m, i) => `<button class="ft" ${atraso(i)} data-ver="minhas:${i}" aria-label="${ehVideo(m) ? 'Ver vídeo' : 'Ver foto'}">${ehVideo(m) ? (m.mini640 ? imgTag(m.mini640, 400, '', m.mini) : `<img src="${esc(m.mini)}" alt="">`) + selosVideo(m) : imgTag(m.id, 400, '', m.mini)}</button>`).join('')}</div>`
-      : vazio(1, FESTA.envioAberto === false ? 'Você não enviou fotos para esta festa.' : 'Você ainda não enviou fotos.<br>Toque em <b>Tirar foto</b> para começar!');
+      : vazio(1, FESTA.envioAberto === false ? 'Você não enviou fotos para esta festa.' : 'Você ainda não enviou fotos.<br>Toque em <b>Câmera</b> ou <b>Do celular</b> para começar!');
   } else {
     if (!albumCarregado) el.innerHTML = vazio('', 'Buscando as fotos da festa…');
     else desenharAlbum();
@@ -2415,7 +2416,7 @@ function passoHtml(n, r) {
     ${campo('cLocal', 'Local', `<input id="cLocal" maxlength="80" placeholder="Ex.: Buffet Casa da Árvore" value="${v('local')}">`, 'Opcional.')}`;
   if (n === 3) return `<h1>Boas-vindas</h1><p class="sub">O recado que o convidado lê ao abrir o álbum.</p>
     ${campo('cBoas', 'Mensagem', `<textarea id="cBoas" maxlength="160">${v('boasVindas')}</textarea>`)}
-    <div class="field"><label>Foto de ${esc(r.aniversariante || 'quem faz aniversário')} (opcional)</label>
+    <div class="field"><label>Foto do(a) aniversariante (opcional)</label>
       <div class="fotoPers">${r.personagem ? `<img class="ph" src="${esc(r.personagem)}" alt="">` : '<span class="ph"></span>'}
         <div style="display:grid;gap:6px;flex:1"><label class="btn btn-sec" for="cFoto" style="min-height:44px">${r.personagem ? 'Trocar foto' : 'Escolher foto'}</label>
           ${r.personagem ? '<button type="button" class="btn-txt" data-c="semfoto">Tirar a foto</button>' : ''}</div></div>

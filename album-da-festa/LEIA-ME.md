@@ -55,7 +55,7 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Recurso | Versão padrão | Faça Você Mesmo | Feito pra Você | Assinatura da família | Licença Profissional | Extra pago | Como testar |
 |---|---|---|---|---|---|---|---|
 | Álbum no celular (nome, foto, galeria, recado) | Sim | Sim | Sim | Sim | Sim | — | Abrir o link da festa, salvar nome, mandar 2 fotos |
-| Vídeo de até 30 s enviado pelo convidado (capa automática, toca no telão sem som) | Sim | Sim | Sim | Sim | Sim | — | Galeria → escolher um vídeo curto; conferir no álbum e no telão |
+| Vídeo de até 30 s enviado pelo convidado (capa automática, toca no telão sem som) | Sim | Sim | Sim | Sim | Sim | — | "Do celular" → escolher um vídeo curto; conferir no álbum e no telão |
 | Fila offline (envia quando a internet volta) | Sim | Sim | Sim | Sim | Sim | — | Modo avião, tirar foto, voltar a internet |
 | Reenvio quando o Google recusa por excesso de envios | Sim | Sim | Sim | Sim | Sim | — | 5 celulares mandando ao mesmo tempo; nenhuma foto perdida |
 | Foto 2048 px + miniatura 640 px | Sim | Sim | Sim | Sim | Sim | — | Ver em `listarFestas()` o MB por foto |
