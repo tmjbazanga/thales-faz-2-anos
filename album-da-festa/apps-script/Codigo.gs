@@ -20,6 +20,7 @@ const CFG = {
   NOME_RAIZ: 'Álbum da Festa — festas',
   FUSO: 'America/Sao_Paulo',
   LIMITE_BYTES: 15 * 1024 * 1024,     // por foto
+  LIMITE_VIDEO: 30 * 1024 * 1024,     // por vídeo (até 30 s, preparado no celular)
   ZIP_PARTE_BYTES: 40 * 1024 * 1024,  // tamanho de cada parte do ZIP
   AVISO_DIAS: 7,                      // aviso à família antes de apagar
   // prazos em dias, contados a partir da data da festa (benchmark Fotify)
@@ -29,7 +30,7 @@ const CFG = {
     familia: { envio: 90,  acesso: 365 },   // por festa (2 festas por ano)
     pro:     { envio: 365, acesso: 365 }    // renovado com renovarAcesso() enquanto a licença estiver ativa
   },
-  MODULOS_PADRAO: { album: true, telao: true, video: false, playlist: false, pescaria: false },
+  MODULOS_PADRAO: { album: true, telao: true, videos: true, video: false, playlist: false, pescaria: false },
   EXTRAS: ['video', 'playlist', 'pescaria'],
   // pelos termos, Feito pra Você, Assinatura da família e Licença Profissional já incluem vídeo e playlist; a pescaria é sempre extra pago
   EXTRAS_INCLUSOS: { diy: [], fpv: ['video', 'playlist'], familia: ['video', 'playlist'], pro: ['video', 'playlist'] }
@@ -160,13 +161,15 @@ function enviar_(rec, b) {
   const aceite = b.aceite || {};
   if (!aceite.v || !aceite.t) return { ok: false, erro: 'Aceite dos termos ausente' };
   const bytes = Utilities.base64Decode(b.dados);
-  if (bytes.length > CFG.LIMITE_BYTES) throw new Error('Foto grande demais');
+  const ehVideo = /^video\/(mp4|webm|quicktime)$/.test(b.mime || '');
+  if (ehVideo && rec.publico.modulos.videos === false) return { ok: false, erro: 'Esta festa recebe só fotos' };
+  if (bytes.length > (ehVideo ? CFG.LIMITE_VIDEO : CFG.LIMITE_BYTES)) throw new Error(ehVideo ? 'Vídeo grande demais' : 'Foto grande demais');
   const chave = String(b.chave || '').slice(0, 60);
   // reenvio da mesma foto depois de uma falha de rede: devolve a que já existe
   if (chave) { const ja = indice_(rec).filter(function (x) { return x.chave === chave; })[0]; if (ja) return { ok: true, foto: ja, repetida: true }; }
 
-  const mime = /^image\//.test(b.mime || '') ? b.mime : 'image/jpeg';
-  const ext = mime === 'image/png' ? 'png' : mime === 'image/heic' ? 'heic' : 'jpg';
+  const mime = ehVideo || /^image\//.test(b.mime || '') ? b.mime : 'image/jpeg';
+  const ext = { 'image/png': 'png', 'image/heic': 'heic', 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov' }[mime] || 'jpg';
   const nome = limpar_(b.nome, 40) || 'Convidado';
   const recado = limpar_(b.recado, 140);
   const t = Date.now();
@@ -176,7 +179,7 @@ function enviar_(rec, b) {
 
   // cria os arquivos fora da trava (é a parte demorada) e só trava para atualizar o índice
   const arq = pasta.createFile(Utilities.newBlob(bytes, mime, base + '.' + ext));
-  arq.setDescription('Foto de ' + nome + (recado ? ' — "' + recado + '"' : ''));
+  arq.setDescription((ehVideo ? 'Vídeo de ' : 'Foto de ') + nome + (recado ? ' — "' + recado + '"' : ''));
   try { arq.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (x) {}
   let mini = null;
   if (b.mini) {
@@ -188,6 +191,7 @@ function enviar_(rec, b) {
   }
   const foto = { id: arq.getId(), mini: mini ? mini.getId() : '', nome: nome, recado: recado, t: t,
     w: Number(b.w) || 0, h: Number(b.h) || 0, bytes: bytes.length, chave: chave,
+    tipo: ehVideo ? 'video' : 'foto', dur: ehVideo ? Math.min(31, Number(b.dur) || 0) : 0, mime: mime,
     aceite: { d: limpar_(b.dispositivo, 60), v: limpar_(aceite.v, 20), t: Number(aceite.t) || t, recebido: t } };
 
   return comTrava_(function () {
@@ -273,12 +277,14 @@ function pescaZerar_(rec) {
   });
 }
 
-// o que os pais podem mudar sozinhos: paleta, assinatura no telão e textos
+// o que os pais podem mudar sozinhos: nome e idade, paleta, assinatura no telão e textos
 function festaConfig_(rec, b) {
   return comTrava_(function () {
     const reg = registro_(), r = reg[rec.id];
     if (b.assinatura != null) r.publico.assinatura = !!b.assinatura;
     if (b.paleta === 'colorida' || b.paleta === 'pastel') r.publico.paleta = b.paleta;
+    if (b.aniversariante != null && limpar_(b.aniversariante, 30)) r.publico.aniversariante = limpar_(b.aniversariante, 30);
+    if (b.idade != null) r.publico.idade = Number(b.idade) >= 1 ? Math.min(120, Math.round(Number(b.idade))) : null;
     if (b.boasVindas != null) r.publico.boasVindas = limpar_(b.boasVindas, 160);
     if (b.contato != null) r.contato = limpar_(b.contato, 120);
     salvarRegistro_(reg);
@@ -300,7 +306,8 @@ function zip_(rec, segundos) {
     while (feitos < idx.length && soma < CFG.ZIP_PARTE_BYTES) {
       try {
         const b = DriveApp.getFileById(idx[feitos].id).getBlob();
-        b.setName(Utilities.formatDate(new Date(idx[feitos].t), CFG.FUSO, 'HH-mm-ss') + ' - ' + idx[feitos].nome.replace(/[\\/:*?"<>|]/g, '') + ' ' + (feitos + 1) + '.jpg');
+        const extZ = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov', 'image/png': 'png', 'image/heic': 'heic' }[idx[feitos].mime] || 'jpg';
+        b.setName(Utilities.formatDate(new Date(idx[feitos].t), CFG.FUSO, 'HH-mm-ss') + ' - ' + idx[feitos].nome.replace(/[\\/:*?"<>|]/g, '') + ' ' + (feitos + 1) + '.' + extZ);
         blobs.push(b); soma += b.getBytes().length;
       } catch (x) {}
       feitos++;

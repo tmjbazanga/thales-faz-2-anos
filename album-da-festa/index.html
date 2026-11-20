@@ -163,6 +163,12 @@
   @keyframes pop { from { transform:scale(.6); opacity:0; } }
   .ft img { width:100%; height:100%; object-fit:cover; display:block; }
   .ft.erro::after { content:""; position:absolute; inset:35%; border-radius:50%; border:2px solid var(--agua2); }
+  .ft .play { position:absolute; left:50%; top:50%; translate:-50% -50%; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,.45);
+    display:grid; place-items:center; pointer-events:none; }
+  .ft .play::before { content:""; margin-left:4px; border-left:15px solid #fff; border-top:10px solid transparent; border-bottom:10px solid transparent; }
+  .ft .dur { position:absolute; right:6px; top:6px; padding:2px 6px; border-radius:8px; background:rgba(0,0,0,.55); color:#fff; font-size:11px; font-weight:800; }
+  .lb video { max-width:100%; max-height:100%; border-radius:12px; background:#000; }
+  .polaroid video { display:block; max-width:100%; max-height:72vh; width:auto; height:auto; min-width:40vw; object-fit:contain; background:#000; border-radius:3px; }
   .ft .selo { position:absolute; inset:auto 0 0; padding:16px 6px 5px; font-size:11px; font-weight:800; color:#fff; text-align:left;
     background:linear-gradient(transparent, rgba(var(--sombra), .65)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .vazio { position:relative; text-align:center; color:var(--suave); padding:26px 16px 24px; background:rgba(255,255,255,.75);
@@ -534,6 +540,9 @@ const CONFIG = {
   LADO_MAX: 2048,          // maior lado da foto principal (px)
   LADO_MINI: 640,          // miniatura gerada no celular para grades e telão
   QUALIDADE: 0.85,
+  VIDEO_SEG: 30,           // duração máxima de vídeo
+  VIDEO_MAX_MB: 25,        // tamanho máximo do vídeo depois de preparado
+  VIDEO_DIRETO_MB: 20,     // até este tamanho (mp4/webm), o vídeo vai como foi gravado
   TERMOS_VERSAO: '2026-11-20.2',   // mude a cada nova versão dos textos: o convidado aceita de novo
   // textos (HTML escrito por nós, não vem do usuário)
   TERMOS: `<h3>1. Quem somos e o que este serviço faz</h3><p>O Álbum da Festa é um serviço de álbum colaborativo de fotos para festas. Os convidados enviam fotos por QR code, sem instalar aplicativo e sem criar login, e as fotos aparecem em um telão durante o evento. Ao final, o organizador recebe o álbum em arquivo ZIP.</p>
@@ -895,8 +904,12 @@ function toast(msg, desfazer, ms = 3200) {
 }
 const imgUrl = (id, w) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}`;
 const imgUrl2 = (id, w) => `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w${w}`;
+const videoUrl = id => `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`;
+const ehVideo = f => f && (f.tipo === 'video' || /^video\//.test(f.mime || ''));
+const videoLiberado = () => !FESTA.modulos || FESTA.modulos.videos !== false;
+const durTxt = s => s ? `0:${String(Math.round(s)).padStart(2, '0')}` : '';
 // grades usam a miniatura de 640 px (arquivo próprio no Drive); se não houver, a miniatura gerada pelo Drive da foto principal
-const fotoTag = (f, w, extra = '') => f.mini && w <= 640 ? imgTag(f.mini, w, extra, '', f.id) : imgTag(f.id, w, extra);
+const fotoTag = (f, w, extra = '') => ehVideo(f) ? (f.mini ? imgTag(f.mini, w, extra) : '<div class="ph"></div>') : f.mini && w <= 640 ? imgTag(f.mini, w, extra, '', f.id) : imgTag(f.id, w, extra);
 function imgTag(id, w, extra = '', mini = '', outro = '') {
   return `<img src="${imgUrl(id, w)}" data-id="${esc(id)}" data-w="${w}" ${mini ? `data-mini="${esc(mini)}"` : ''} ${outro ? `data-outro="${esc(outro)}"` : ''} loading="lazy" alt="" onerror="imgErro(this)" ${extra}>`;
 }
@@ -985,17 +998,87 @@ async function preparar(file) {
   } finally { URL.revokeObjectURL(url); }
 }
 
+/* vídeos de até 30 s: capa (640 px e 200 px) tirada do próprio vídeo; arquivos grandes ou .mov são regravados em 720p */
+function carregarVideo(url) {
+  return new Promise((res, rej) => {
+    const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.playsInline = true; v.src = url;
+    v.onloadedmetadata = () => res(v); v.onerror = () => rej(new Error('vídeo'));
+    setTimeout(() => rej(new Error('vídeo')), 15000);
+  });
+}
+function capaDoVideo(v) {
+  return new Promise(res => {
+    const pronto = () => {
+      const w0 = v.videoWidth || 640, h0 = v.videoHeight || 360;
+      const desenhar = lado => { const k = Math.min(1, lado / Math.max(w0, h0)), c = document.createElement('canvas');
+        c.width = Math.round(w0 * k); c.height = Math.round(h0 * k); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); return c; };
+      try { res({ m640: desenhar(CONFIG.LADO_MINI).toDataURL('image/jpeg', .78).split(',')[1], mini: desenhar(200).toDataURL('image/jpeg', .7), w: w0, h: h0 }); }
+      catch { res({ m640: '', mini: '', w: w0, h: h0 }); }
+    };
+    v.onseeked = pronto; v.currentTime = Math.min(0.5, (v.duration || 1) / 2);
+    setTimeout(pronto, 4000);
+  });
+}
+function formatoGravacao() {
+  if (!window.MediaRecorder) return '';
+  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+}
+// regrava em 720p (até 30 s), em tempo real: o convidado espera a duração do vídeo
+async function regravar(v, seg) {
+  const tipo = formatoGravacao(); if (!tipo) throw new Error('sem gravador');
+  const k = Math.min(1, 1280 / Math.max(v.videoWidth, v.videoHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * k / 2) * 2; c.height = Math.round(v.videoHeight * k / 2) * 2;
+  const g = c.getContext('2d'), stream = c.captureStream(30);
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(); await ac.resume();
+    const dest = ac.createMediaStreamDestination(); ac.createMediaElementSource(v).connect(dest);
+    dest.stream.getAudioTracks().forEach(t => stream.addTrack(t)); v.muted = false;
+  } catch {}
+  const rec = new MediaRecorder(stream, { mimeType: tipo, videoBitsPerSecond: 2500000, audioBitsPerSecond: 96000 });
+  const partes = []; rec.ondataavailable = e => e.data.size && partes.push(e.data);
+  const fim = new Promise(r => rec.onstop = r);
+  v.currentTime = 0; await new Promise(r => { v.onseeked = r; setTimeout(r, 1500); });
+  let vivo = true; const quadro = () => { if (!vivo) return; g.drawImage(v, 0, 0, c.width, c.height); requestAnimationFrame(quadro); };
+  rec.start(1000); await v.play(); quadro();
+  await new Promise(r => { v.onended = r; setTimeout(r, seg * 1000 + 300); });
+  vivo = false; v.pause(); rec.stop(); await fim;
+  return new Blob(partes, { type: tipo.split(';')[0] });
+}
+async function prepararVideo(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const v = await carregarVideo(url);
+    const dur = v.duration || 0, longo = dur > CONFIG.VIDEO_SEG + 0.5;
+    const capa = await capaDoVideo(v);
+    const direto = !longo && /^video\/(mp4|webm)$/.test(file.type) && file.size <= CONFIG.VIDEO_DIRETO_MB * 1e6;
+    let blob = file;
+    if (!direto) {
+      toast(longo ? `O vídeo passa de ${CONFIG.VIDEO_SEG} s: vamos usar só o começo. Mantenha esta tela aberta…` : 'Preparando o vídeo… mantenha esta tela aberta', null, 4000);
+      try { blob = await regravar(v, Math.min(dur, CONFIG.VIDEO_SEG)); }
+      catch { if (longo) throw new Error('longo'); }
+    }
+    if (blob.size > CONFIG.VIDEO_MAX_MB * 1e6) throw new Error('grande');
+    return { tipo: 'video', mime: blob.type || file.type || 'video/mp4', dados: await lerBase64(blob), dur: Math.min(dur, CONFIG.VIDEO_SEG), ...capa };
+  } finally { URL.revokeObjectURL(url); }
+}
+
 async function adicionarFotos(files) {
   const nome = local.get('nome', '');
   const recado = ($('#recado')?.value || '').trim();
   let n = 0;
   for (const f of files) {
-    if (!/^image\//.test(f.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name)) continue;
+    const video = /^video\//.test(f.type) || /\.(mp4|mov|webm|m4v)$/i.test(f.name);
+    if (!video && !/^image\//.test(f.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name)) continue;
+    if (video && !videoLiberado()) { toast('Esta festa recebe só fotos.'); continue; }
     try {
-      const p = await preparar(f);
+      const p = video ? await prepararVideo(f) : await preparar(f);
       await Fila.por({ chave: uid(), criado: Date.now() + n, nome, recado, tentativas: 0, ...p });
       n++;
-    } catch (e) { toast('Não conseguimos abrir uma das fotos. Tente outra.'); }
+    } catch (e) {
+      toast(e.message === 'longo' ? `Este celular não consegue cortar o vídeo. Grave um de até ${CONFIG.VIDEO_SEG} segundos.`
+        : e.message === 'grande' ? 'O vídeo ficou grande demais. Grave um mais curto.'
+        : video ? 'Não conseguimos abrir esse vídeo. Tente outro.' : 'Não conseguimos abrir uma das fotos. Tente outra.');
+    }
   }
   if (!n) return;
   if ($('#recado')) { $('#recado').value = ''; recadoAberto = false; desenharRecado(); }
@@ -1017,8 +1100,8 @@ async function processar() {
       try {
         if (!FESTA.envioAberto) throw new Error('O prazo de envio de fotos desta festa terminou');
         if (!aceiteValido()) { mostrarTermos(); break; }
-        const r = await apiPost({ acao: 'enviar', dispositivo: idAparelho(), aceite: local.get('termos', null), chave: prox.chave, nome: prox.nome, recado: prox.recado, mime: prox.mime, dados: prox.dados, mini: prox.m640 || '', w: prox.w, h: prox.h });
-        const meus = local.get('meus', []); meus.unshift({ id: r.foto.id, t: r.foto.t, mini: prox.mini || '' }); local.set('meus', meus);
+        const r = await apiPost({ acao: 'enviar', dispositivo: idAparelho(), aceite: local.get('termos', null), chave: prox.chave, nome: prox.nome, recado: prox.recado, mime: prox.mime, dados: prox.dados, mini: prox.m640 || '', w: prox.w, h: prox.h, tipo: prox.tipo || 'foto', dur: prox.dur || 0 });
+        const meus = local.get('meus', []); meus.unshift({ id: r.foto.id, t: r.foto.t, mini: prox.mini || '', tipo: r.foto.tipo || 'foto', dur: r.foto.dur || 0, mini640: r.foto.mini || '' }); local.set('meus', meus);
         await Fila.tirar(prox.chave); enviadas++;
       } catch (e) {
         // "ocupado" = muitos convidados enviando ao mesmo tempo: espera um pouco e tenta de novo sem contar como falha
@@ -1033,7 +1116,7 @@ async function processar() {
     enviando = false;
     await renderFila();
     if (enviadas) {
-      toast(enviadas > 1 ? `${enviadas} fotos foram para o álbum!` : 'Sua foto foi para o álbum!');
+      toast(enviadas > 1 ? `${enviadas} itens foram para o álbum!` : 'Enviado para o álbum!');
       aba = 'minhas'; renderGrade();
       if (!location.hash || location.hash === '#') Fx.festa();
     }
@@ -1120,8 +1203,8 @@ function convidado() {
         <label class="btn btn-sec" for="galeria" data-pede-nome>${ic('galeria')}Galeria</label>
       </div>
     </nav>
-    <input class="esconder" type="file" id="camera" accept="image/*" capture="environment" tabindex="-1">
-    <input class="esconder" type="file" id="galeria" accept="image/*" multiple tabindex="-1">` : ''}`;
+    <input class="esconder" type="file" id="camera" accept="${videoLiberado() ? 'image/*,video/*' : 'image/*'}" capture="environment" tabindex="-1">
+    <input class="esconder" type="file" id="galeria" accept="${videoLiberado() ? 'image/*,video/*' : 'image/*'}" multiple tabindex="-1">` : ''}`;
   if (!aberto) document.body.classList.add('sem-barra');
   if (aberto) desenharRecado();
   desenharAbas(); renderFila(); renderGrade();
@@ -1136,7 +1219,7 @@ function mostrarTermos() {
   if ($('#termos')) return;
   const d = document.createElement('div'); d.className = 'termos'; d.id = 'termos'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'termosT');
   d.innerHTML = `<div class="caixa"><h2 id="termosT">Antes de mandar fotos</h2>
-    <ul><li>As fotos que você enviar vão para o álbum da festa de ${esc(N())} e aparecem no telão, com o seu nome.</li>
+    <ul><li>As fotos e vídeos que você enviar vão para o álbum da festa de ${esc(N())} e aparecem no telão, com o seu nome.</li>
       <li>A família pode ocultar qualquer foto e baixar todas depois da festa.</li>
       <li>O álbum fica no ar por um tempo limitado e depois é apagado.</li>
       <li>Fotografe outras crianças só se os pais delas concordarem.</li></ul>
@@ -1150,7 +1233,7 @@ function mostrarTermos() {
 function blocoNome(nome) {
   return nome
     ? `<div class="quem"><div class="avatar" aria-hidden="true">${esc(nome.trim()[0].toUpperCase())}</div>
-        <div class="txt">Enviando como<b>${esc(nome)}</b></div>
+        <div class="txt">Enviando como<b>${esc(nome)}</b>${videoLiberado() ? `<small style="display:block;color:var(--suave)">Vale foto e vídeo de até ${CONFIG.VIDEO_SEG} s</small>` : ''}</div>
         <button class="btn-txt" data-trocar-nome>Trocar</button></div>`
     : `<div class="field">
         <label for="nome">Como você se chama?</label>
@@ -1185,13 +1268,14 @@ function desenharFila() {
       ${i.mini ? `<img src="${i.mini}" alt="">` : '<div class="ph"></div>'}
       <div class="txt">
         ${i.pausada ? (/prazo|encerrado/i.test(i.erro || '') ? 'O prazo de envio desta festa terminou.' : `Não foi possível enviar. Toque em tentar de novo.`)
-          : i.status === 'enviando' ? 'Enviando para o álbum…' : i.erro === 'ocupado' ? 'Muita gente enviando agora. Já tentamos de novo.' : i.erro ? 'Sem conexão. Vamos tentar de novo sozinhos.' : 'Na fila para enviar'}
+          : i.status === 'enviando' ? (i.tipo === 'video' ? 'Enviando o vídeo…' : 'Enviando para o álbum…') : i.erro === 'ocupado' ? 'Muita gente enviando agora. Já tentamos de novo.' : i.erro ? 'Sem conexão. Vamos tentar de novo sozinhos.' : 'Na fila para enviar'}
         ${!i.pausada ? '<div class="barra"><i></i></div>' : ''}
       </div>
       ${i.pausada ? `<button class="btn-icone" data-retentar="${i.chave}" aria-label="Tentar de novo">${ic('refazer')}</button>
                      <button class="btn-icone" data-descartar="${i.chave}" aria-label="Descartar foto">${ic('x')}</button>` : ''}
     </div>`).join('');
 }
+const selosVideo = f => ehVideo(f) ? `<span class="play" aria-hidden="true"></span>${f.dur ? `<span class="dur">${durTxt(f.dur)}</span>` : ''}` : '';
 const vazio = (icone, txt) => `<div class="vazio">${icone ? Tema.vazioIcone() : ''}${txt}</div>`;
 const atraso = i => `style="--d:${Math.min(i, 12) * 0.04}s"`;
 function renderGrade() {
@@ -1200,7 +1284,7 @@ function renderGrade() {
   if (aba === 'minhas') {
     const meus = local.get('meus', []);
     el.innerHTML = meus.length
-      ? `<div class="grade">${meus.map((m, i) => `<button class="ft" ${atraso(i)} data-ver="minhas:${i}" aria-label="Ver foto">${imgTag(m.id, 400, '', m.mini)}</button>`).join('')}</div>`
+      ? `<div class="grade">${meus.map((m, i) => `<button class="ft" ${atraso(i)} data-ver="minhas:${i}" aria-label="${ehVideo(m) ? 'Ver vídeo' : 'Ver foto'}">${ehVideo(m) ? (m.mini640 ? imgTag(m.mini640, 400, '', m.mini) : `<img src="${esc(m.mini)}" alt="">`) + selosVideo(m) : imgTag(m.id, 400, '', m.mini)}</button>`).join('')}</div>`
       : vazio(1, FESTA.envioAberto === false ? 'Você não enviou fotos para esta festa.' : 'Você ainda não enviou fotos.<br>Toque em <b>Tirar foto</b> para começar!');
   } else {
     if (!albumCarregado) el.innerHTML = vazio('', 'Buscando as fotos da festa…');
@@ -1211,7 +1295,7 @@ function renderGrade() {
 function desenharAlbum() {
   const el = $('#grade'); if (!el || aba !== 'todas') return;
   el.innerHTML = albumCache.length
-    ? `<div class="grade">${albumCache.map((f, i) => `<button class="ft" ${atraso(i)} data-ver="todas:${i}" aria-label="Foto de ${esc(f.nome)}">${fotoTag(f, 400)}<span class="selo">${esc(f.nome)}</span></button>`).join('')}</div>`
+    ? `<div class="grade">${albumCache.map((f, i) => `<button class="ft" ${atraso(i)} data-ver="todas:${i}" aria-label="${ehVideo(f) ? 'Vídeo' : 'Foto'} de ${esc(f.nome)}">${fotoTag(f, 400)}${selosVideo(f)}<span class="selo">${esc(f.nome)}</span></button>`).join('')}</div>`
     : vazio(1, 'Ninguém enviou fotos ainda.<br>Que tal ser a primeira pessoa?');
 }
 async function carregarAlbum() {
@@ -1239,7 +1323,7 @@ function desenharLb() {
   const d = document.createElement('div'); d.className = 'lb'; d.id = 'lb'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Foto');
   d.innerHTML = `
     <div class="barraLb"><span>${lb.i + 1} de ${lb.lista.length}</span><button class="btn-icone" data-lb="fechar" aria-label="Fechar">${ic('x')}</button></div>
-    <div class="foto" data-lb="fechar">${imgTag(f.id, 1600, 'loading="eager"', f.mini || '')}</div>
+    <div class="foto" data-lb="fechar">${ehVideo(f) ? `<video src="${videoUrl(f.id)}" ${(f.mini640 || f.mini) && !String(f.mini640 || f.mini).startsWith('data:') ? `poster="${imgUrl(f.mini640 || f.mini, 640)}"` : ''} controls playsinline preload="metadata"></video>` : imgTag(f.id, 1600, 'loading="eager"', f.mini || '')}</div>
     <div class="info">${f.nome ? `<b>${esc(f.nome)}</b>` : ''}${f.recado ? `<span>“${esc(f.recado)}”</span>` : ''}</div>
     <div class="navLb"><button data-lb="ant" ${lb.i === 0 ? 'disabled' : ''}>${ic('voltar')}Anterior</button><button data-lb="prox" ${lb.i >= lb.lista.length - 1 ? 'disabled' : ''}>Próxima${ic('avancar')}</button></div>`;
   document.body.appendChild(d);
@@ -1427,6 +1511,7 @@ async function proximaFoto() {
     f = T.ciclo.shift();
   }
   if (!f) { timers.push(setTimeout(proximaFoto, 3000)); return; }
+  if (ehVideo(f)) return mostrarVideoTelao(f);
   const largura = Math.min(2560, Math.round(Math.max(screen.width, screen.height) * (devicePixelRatio || 1)));
   // foto principal em tamanho de tela; se o Drive ainda não gerou a imagem (foto recém-enviada), usa a miniatura de 640 px
   const fontes = [imgUrl(f.id, largura), imgUrl2(f.id, largura)];
@@ -1453,6 +1538,28 @@ async function proximaFoto() {
   requestAnimationFrame(() => { el.classList.add('vis'); velho.classList.remove('vis'); });
   if (f.nova) { Tema.novaFoto(); if (FESTA.personagem) { const fl = falaPorNome(f.nome); setTimeout(() => falaThales(fl.texto, fl.audios), 900); } }
   timers.push(setTimeout(proximaFoto, CONFIG.TROCA_SEGUNDOS * 1000 + (f.nova ? 3000 : 0)));
+}
+
+// vídeo no telão: toca sem som e passa para a próxima quando acaba (máx. 30 s); se não carregar, mostra a capa
+async function mostrarVideoTelao(f) {
+  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = videoUrl(f.id);
+  const ok = await new Promise(r => { v.oncanplay = () => r(true); v.onerror = () => r(false); setTimeout(() => r(false), 10000); });
+  if (!T.rodando || location.hash !== '#telao') return;
+  if (!ok && !f.mini) { timers.push(setTimeout(proximaFoto, 500)); return; }
+  T.camada = 1 - T.camada;
+  const el = $('#c' + T.camada), velho = $('#c' + (1 - T.camada));
+  const rot = (Math.random() * 3 - 1.5).toFixed(2);
+  el.innerHTML = `<figure class="polaroid" style="--rot:${rot}deg"><div class="midia"></div>
+      <figcaption class="leg">${f.nome ? `<span class="nome">${esc(f.nome)}</span>` : ''}<span class="msg">${f.recado ? '“' + esc(f.recado) + '”' : ''}</span>
+        ${f.nova ? '<span class="nova">Acabou de chegar!</span>' : ''}</figcaption></figure>`;
+  if (ok) el.querySelector('.midia').appendChild(v); else el.querySelector('.midia').innerHTML = `<img src="${imgUrl(f.mini, 1280)}" alt="">`;
+  requestAnimationFrame(() => { el.classList.add('vis'); velho.classList.remove('vis'); });
+  if (f.nova) Tema.novaFoto();
+  if (ok) { try { await v.play(); } catch {} }
+  const dur = ok ? Math.min((v.duration || f.dur || 10) + 1, CONFIG.VIDEO_SEG + 2) : CONFIG.TROCA_SEGUNDOS;
+  let foi = false; const seguir = () => { if (foi) return; foi = true; proximaFoto(); };
+  if (ok) v.onended = () => setTimeout(seguir, 600);
+  timers.push(setTimeout(seguir, dur * 1000));
 }
 
 /* ---------- área dos pais ---------- */
@@ -1535,6 +1642,14 @@ function pais() {
         <div class="linha2"><a class="btn btn-sec" href="#baus">Imprimir números</a><button class="btn btn-sec" data-pesca="zerar">Zerar pescaria</button></div>
         <ul class="listaP" id="listaP"></ul>
       </div>` : ''}
+      <div class="group-title"><span>Dados da festa</span></div>
+      <form class="card" id="formDados" style="display:grid;gap:12px">
+        <div class="dupla" style="display:grid;grid-template-columns:2fr 1fr;gap:12px">
+          <div class="field" style="margin:0"><label for="dNome">Nome do aniversariante</label><input id="dNome" maxlength="30" required value="${esc(FESTA.aniversariante || '')}"></div>
+          <div class="field" style="margin:0"><label for="dIdade">Idade</label><input id="dIdade" type="number" inputmode="numeric" min="1" max="120" value="${esc(FESTA.idade || '')}"></div>
+        </div>
+        <button>Salvar nome e idade</button>
+      </form>
       ${(FESTA.tema || 'baloes') === 'baloes' ? `<div class="group-title"><span>Visual da festa</span></div>
       <div class="card"><p style="margin:0 0 10px;color:var(--suave);font-size:14px">Muda as cores no celular dos convidados e no telão (em até 15 segundos).</p>
         <div class="opcoesTema">${Object.entries(PALETAS).map(([k, p]) => `<button type="button" class="opTema" data-paleta-pais="${k}" aria-pressed="${FESTA.paleta === k}">${heroBaloes(p)}${esc(p.nome)}</button>`).join('')}</div></div>` : ''}
@@ -1616,6 +1731,14 @@ async function ocultar(id, oculta) {
   try { await apiPost({ acao: 'ocultar', token: sessionStorage.getItem('album-token'), id, oculta }); return true; }
   catch (err) { if (f) { f.oculta = !oculta; desenharPais(); } toast('Não deu certo. Tente de novo.'); return false; }
 }
+document.addEventListener('submit', async e => {
+  if (location.hash !== '#pais' || e.target.id !== 'formDados') return;
+  e.preventDefault();
+  const nome = $('#dNome').value.trim(), idade = $('#dIdade').value ? Math.round(+$('#dIdade').value) : null;
+  if (!nome) { $('#dNome').focus(); return toast('Escreva o nome de quem faz aniversário'); }
+  if (idade !== null && !(idade >= 1 && idade <= 120)) { $('#dIdade').focus(); return toast('Coloque uma idade entre 1 e 120, ou deixe em branco'); }
+  if (await postPais({ acao: 'festa-config', aniversariante: nome, idade: idade ?? '' }, 'Nome e idade atualizados. O telão muda em até 15 segundos.')) atualizarFesta({ ...FESTA, aniversariante: nome, idade });
+});
 document.addEventListener('change', async e => {
   if (location.hash !== '#pais' || e.target.id !== 'assinatura') return;
   const v = e.target.checked;
@@ -2381,11 +2504,12 @@ function criarPronto() {
 /* ---------- início ---------- */
 // festa salva no aparelho (abre sem internet) e atualizada pelo back-end
 function atualizarFesta(f, doTelao = false) {
-  const antes = FESTA.tema + FESTA.paleta + JSON.stringify(FESTA.cores);
+  const chave = x => [x.tema, x.paleta, JSON.stringify(x.cores), x.aniversariante, x.idade].join('|');
+  const antes = chave(FESTA);
   FESTA = { ...FESTA_PADRAO, ...f };
   local.set('festa', FESTA);
   document.title = 'Álbum da festa · ' + N();
-  if (antes === FESTA.tema + FESTA.paleta + JSON.stringify(FESTA.cores)) return;
+  if (antes === chave(FESTA)) return;
   // telão rodando: troca as cores e a arte sem parar as fotos; nas outras telas, redesenha
   if (doTelao && T.rodando) carregarTema().then(() => { const h = $('.heroTl'); if (h) h.innerHTML = heroBaloes(); });
   else carregarTema().then(render);
