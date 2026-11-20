@@ -55,7 +55,7 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Recurso | Versão padrão | Faça Você Mesmo | Feito pra Você | Assinatura da família | Licença Profissional | Extra pago | Como testar |
 |---|---|---|---|---|---|---|---|
 | Álbum no celular (nome, foto, galeria, recado) | Sim | Sim | Sim | Sim | Sim | — | Abrir o link da festa, salvar nome, mandar 2 fotos |
-| Vídeo de até 30 s enviado pelo convidado (capa automática, toca no telão sem som) | Sim | Sim | Sim | Sim | Sim | — | "Do celular" → escolher um vídeo curto; conferir no álbum e no telão |
+| Vídeo de até 30 s enviado pelo convidado (capa automática; no telão passa só uma prévia de 8 s, sem som) | Sim | Sim | Sim | Sim | Sim | — | "Do celular" → escolher um vídeo curto; conferir no álbum e no telão |
 | Fila offline (envia quando a internet volta) | Sim | Sim | Sim | Sim | Sim | — | Modo avião, tirar foto, voltar a internet |
 | Reenvio quando o Google recusa por excesso de envios | Sim | Sim | Sim | Sim | Sim | — | 5 celulares mandando ao mesmo tempo; nenhuma foto perdida |
 | Foto 2048 px + miniatura 640 px | Sim | Sim | Sim | Sim | Sim | — | Ver em `listarFestas()` o MB por foto |
@@ -72,8 +72,8 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 | Montagem pelo assistente | — | Cliente monta | Você monta (briefing) | Cliente monta | Cliente monta | — | `#criar` |
 | Tema personalizado (ex.: Fundo do Mar) | — | — | Sim | Sim | Sim | Sim | festa.json com `"tema": "fundo-do-mar"` |
 | Pescaria de lembrancinhas | — | — | — | — | — | Sim | `liberarExtra()` → `#pescar` |
-| Vídeo no telão | — | — | Sim | Sim | Sim | Sim | `liberarExtra()` → telão → escolher vídeo → área dos pais → Tocar vídeo |
-| Playlist do Spotify no telão | — | — | Sim | Sim | Sim | Sim | `liberarExtra()` → colar link na tela "Iniciar telão" |
+| Vídeo no telão | — | — | Sim | Sim | Sim | Sim | Telão → "Tem um vídeo para passar no telão?" → Subir vídeo (ou arrastar) → área dos pais → Tocar vídeo |
+| Playlist do Spotify no telão | — | — | Sim | Sim | Sim | Sim | Área dos pais → Música no telão → colar link do Spotify → conferir a prévia; o telão começa a tocar em até 15 s |
 | Papelaria pronta | — | — | Sim | Sim | Sim | Sim | Fora do app (arquivo à parte) |
 | Mais tempo de álbum no ar | — | — | — | — | — | Sim | `renovarAcesso()` |
 
