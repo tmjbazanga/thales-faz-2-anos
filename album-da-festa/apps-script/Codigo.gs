@@ -273,11 +273,12 @@ function pescaZerar_(rec) {
   });
 }
 
-// o que os pais podem mudar sozinhos: assinatura no telão e textos
+// o que os pais podem mudar sozinhos: paleta, assinatura no telão e textos
 function festaConfig_(rec, b) {
   return comTrava_(function () {
     const reg = registro_(), r = reg[rec.id];
     if (b.assinatura != null) r.publico.assinatura = !!b.assinatura;
+    if (b.paleta === 'colorida' || b.paleta === 'pastel') r.publico.paleta = b.paleta;
     if (b.boasVindas != null) r.publico.boasVindas = limpar_(b.boasVindas, 160);
     if (b.contato != null) r.contato = limpar_(b.contato, 120);
     salvarRegistro_(reg);
@@ -512,9 +513,17 @@ function listarFestas() {
 const FESTA_ALVO = '';          // id da festa (veja em listarFestas)
 const MODULO_ALVO = 'pescaria'; // video | playlist | pescaria
 const DIAS_A_MAIS = 365;
-function liberarExtra() {
-  comTrava_(function () { const reg = registro_(); reg[FESTA_ALVO].publico.modulos[MODULO_ALVO] = true; salvarRegistro_(reg); });
-  Logger.log(MODULO_ALVO + ' liberado em ' + FESTA_ALVO);
+function liberarExtra() { ligarExtra_(true); }
+function desligarExtra() { ligarExtra_(false); }
+function ligarExtra_(ligar) {
+  comTrava_(function () { const reg = registro_(); reg[FESTA_ALVO].publico.modulos[MODULO_ALVO] = ligar; salvarRegistro_(reg); });
+  Logger.log(MODULO_ALVO + (ligar ? ' ligado' : ' desligado') + ' em ' + FESTA_ALVO);
+}
+// troca o tema de uma festa (ex.: 'fundo-do-mar' quando o tema personalizado é vendido; 'baloes' volta ao neutro)
+const TEMA_ALVO = 'baloes';
+function trocarTema() {
+  comTrava_(function () { const reg = registro_(); reg[FESTA_ALVO].publico.tema = TEMA_ALVO; salvarRegistro_(reg); });
+  Logger.log(FESTA_ALVO + ': tema ' + TEMA_ALVO);
 }
 function renovarAcesso() {
   comTrava_(function () {

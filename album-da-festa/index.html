@@ -1396,6 +1396,7 @@ async function buscarTelao(primeira) {
   if (!configurado()) return atualizarVazio();
   try {
     const r = await apiGet();
+    if (r.festa) atualizarFesta(r.festa, true);
     const visiveis = new Set(r.fotos.map(f => f.id));
     T.fotos = r.fotos;
     novoMomento(r.momento, primeira);
@@ -1534,6 +1535,9 @@ function pais() {
         <div class="linha2"><a class="btn btn-sec" href="#baus">Imprimir números</a><button class="btn btn-sec" data-pesca="zerar">Zerar pescaria</button></div>
         <ul class="listaP" id="listaP"></ul>
       </div>` : ''}
+      ${(FESTA.tema || 'baloes') === 'baloes' ? `<div class="group-title"><span>Visual da festa</span></div>
+      <div class="card"><p style="margin:0 0 10px;color:var(--suave);font-size:14px">Muda as cores no celular dos convidados e no telão (em até 15 segundos).</p>
+        <div class="opcoesTema">${Object.entries(PALETAS).map(([k, p]) => `<button type="button" class="opTema" data-paleta-pais="${k}" aria-pressed="${FESTA.paleta === k}">${heroBaloes(p)}${esc(p.nome)}</button>`).join('')}</div></div>` : ''}
       <div class="group-title"><span>Telão</span></div>
       <div class="card"><label style="display:flex;align-items:center;gap:12px;font-size:15px;cursor:pointer">
         <input type="checkbox" id="assinatura" style="width:24px;min-height:24px;flex:none" ${FESTA.assinatura !== false ? 'checked' : ''}>
@@ -1619,6 +1623,12 @@ document.addEventListener('change', async e => {
 });
 document.addEventListener('click', async e => {
   if (location.hash !== '#pais') return;
+  const pal = e.target.closest('[data-paleta-pais]');
+  if (pal && pal.dataset.paletaPais !== FESTA.paleta) {
+    const v = pal.dataset.paletaPais;
+    if (await postPais({ acao: 'festa-config', paleta: v }, 'Visual trocado para ' + PALETAS[v].nome)) atualizarFesta({ ...FESTA, paleta: v });
+    return;
+  }
   const t = e.target;
   const acao = t.closest('[data-pais]')?.dataset.pais;
   if (acao === 'sair') { sessionStorage.removeItem('album-token'); location.hash = ''; return; }
@@ -2370,12 +2380,15 @@ function criarPronto() {
 
 /* ---------- início ---------- */
 // festa salva no aparelho (abre sem internet) e atualizada pelo back-end
-function atualizarFesta(f) {
+function atualizarFesta(f, doTelao = false) {
   const antes = FESTA.tema + FESTA.paleta + JSON.stringify(FESTA.cores);
   FESTA = { ...FESTA_PADRAO, ...f };
   local.set('festa', FESTA);
   document.title = 'Álbum da festa · ' + N();
-  if (antes !== FESTA.tema + FESTA.paleta + JSON.stringify(FESTA.cores)) carregarTema().then(render);
+  if (antes === FESTA.tema + FESTA.paleta + JSON.stringify(FESTA.cores)) return;
+  // telão rodando: troca as cores e a arte sem parar as fotos; nas outras telas, redesenha
+  if (doTelao && T.rodando) carregarTema().then(() => { const h = $('.heroTl'); if (h) h.innerHTML = heroBaloes(); });
+  else carregarTema().then(render);
 }
 async function iniciar() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
