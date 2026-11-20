@@ -8,7 +8,11 @@
  *
  * Funções para rodar pelo editor (botão ▶ Executar):
  *   configurar()          uma vez: cria a pasta raiz, a chave de administrador e o gatilho diário
- *   gerarCodigo()         cria um código de ativação (edite DEGRAU_DO_CODIGO e EXTRAS_DO_CODIGO antes)
+ *   gerarCodigo()         cria um código de ativação (edite DEGRAU_DO_CODIGO e EXTRAS_DO_CODIGO antes);
+ *                         na Assinatura da família ('familia') o código cria festas ilimitadas por 1 ano
+ *   renovarAssinatura()   estende o código da família por mais 1 ano (edite CODIGO_ALVO)
+ *   listarBriefings()     mostra os pedidos do Feito pra Você que chegaram pelo SITE/#briefing
+ *   montarBriefing()      cria a festa de um pedido (edite BRIEFING_ALVO); enviarLinksBriefing() manda os links à família
  *   listarFestas()        mostra as festas, prazos e uso de espaço
  *   liberarExtra()        liga um módulo extra numa festa (edite as constantes antes)
  *   renovarAcesso()       estende o prazo de uma festa (assinatura ou extensão vendida)
@@ -18,6 +22,7 @@
 
 const CFG = {
   NOME_RAIZ: 'Álbum da Festa — festas',
+  SITE: 'https://albumdafesta.github.io',
   FUSO: 'America/Sao_Paulo',
   LIMITE_BYTES: 15 * 1024 * 1024,     // por foto
   LIMITE_VIDEO: 30 * 1024 * 1024,     // por vídeo (até 30 s, preparado no celular)
@@ -27,13 +32,13 @@ const CFG = {
   PRAZOS: {
     diy:     { envio: 30,  acesso: 90 },
     fpv:     { envio: 90,  acesso: 365 },
-    familia: { envio: 90,  acesso: 365 },   // por festa (2 festas por ano)
+    familia: { envio: 30,  acesso: 90 },    // por festa; festas ilimitadas enquanto a assinatura anual estiver ativa
     pro:     { envio: 365, acesso: 365 }    // renovado com renovarAcesso() enquanto a licença estiver ativa
   },
-  MODULOS_PADRAO: { album: true, telao: true, videos: true, video: false, playlist: false, pescaria: false },
+  // vídeo e playlist no telão fazem parte de todos os planos; a pescaria só entra quando liberada à parte
+  MODULOS_PADRAO: { album: true, telao: true, videos: true, video: true, playlist: true, pescaria: false },
   EXTRAS: ['video', 'playlist', 'pescaria'],
-  // pelos termos, Feito pra Você, Assinatura da família e Licença Profissional já incluem vídeo e playlist; a pescaria é sempre extra pago
-  EXTRAS_INCLUSOS: { diy: [], fpv: ['video', 'playlist'], familia: ['video', 'playlist'], pro: ['video', 'playlist'] }
+  EXTRAS_INCLUSOS: { diy: [], fpv: [], familia: [], pro: [] }
 };
 
 /* ===================== rotas ===================== */
@@ -69,6 +74,7 @@ function doPost(e) {
   try {
     const b = JSON.parse(e.postData.contents);
     if (b.acao === 'criar') return json_(criar_(b));
+    if (b.acao === 'briefing') return json_(briefing_(b));
     const rec = festa_(b.f);
     switch (b.acao) {
       case 'enviar': return json_(enviar_(rec, b));
@@ -101,24 +107,35 @@ function criar_(b) {
   const codigos = JSON.parse(props.getProperty('CODIGOS') || '{}');
   const cod = admin ? null : codigos[String(b.codigo || '').trim().toUpperCase()];
   if (!admin && !cod) return { ok: false, erro: 'Código de ativação inválido' };
-  if (cod && cod.usado) return { ok: false, erro: 'Este código já foi usado' };
+  if (cod && cod.usado && !cod.ilimitado) return { ok: false, erro: 'Este código já foi usado' };
+  if (cod && cod.ilimitado && cod.validoAte && hoje_() > cod.validoAte) return { ok: false, erro: 'Esta assinatura venceu. Renove para criar novas festas.' };
 
   const nome = limpar_(f.aniversariante, 30);
   if (!nome) return { ok: false, erro: 'Falta o nome do aniversariante' };
   const pin = String(f.pin || '').replace(/\D/g, '');
   if (pin.length < 6 || pin.length > 8) return { ok: false, erro: 'O PIN precisa ter de 6 a 8 números' };
-  const data = /^\d{4}-\d{2}-\d{2}$/.test(f.data || '') ? f.data : Utilities.formatDate(new Date(), CFG.FUSO, 'yyyy-MM-dd');
   const degrau = admin ? (CFG.PRAZOS[f.degrau] ? f.degrau : 'fpv') : cod.degrau;
+  const extrasPedidos = admin ? CFG.EXTRAS.filter(function (x) { return f.modulos && f.modulos[x]; }) : (cod.extras || []);
+  const sal = Utilities.getUuid();
+  return criarFesta_(f, degrau, extrasPedidos, sal, hash_(sal + pin), function (id) {
+    if (!cod) return;
+    if (cod.ilimitado) (cod.festas = cod.festas || []).push(id); else { cod.usado = true; cod.festa = id; }
+    cod.em = Date.now(); props.setProperty('CODIGOS', JSON.stringify(codigos));
+  });
+}
 
+// cria a pasta e o registro da festa (usada pelo assistente e pelo montarBriefing)
+function criarFesta_(f, degrau, extrasPedidos, sal, pinHash, depois) {
+  const nome = limpar_(f.aniversariante, 30);
+  const data = /^\d{4}-\d{2}-\d{2}$/.test(f.data || '') ? f.data : Utilities.formatDate(new Date(), CFG.FUSO, 'yyyy-MM-dd');
   return comTrava_(function () {
     const reg = registro_();
     let id;
     do { id = slug_(nome) + (f.idade ? '-' + Number(f.idade) : '') + '-' + Utilities.getUuid().slice(0, 4); } while (reg[id]);
 
     const pasta = raiz_().createFolder(data + ' · ' + nome + ' (' + id + ')');
-    const sal = Utilities.getUuid();
     const modulos = Object.assign({}, CFG.MODULOS_PADRAO);
-    const extras = (CFG.EXTRAS_INCLUSOS[degrau] || []).concat(admin ? CFG.EXTRAS.filter(function (x) { return f.modulos && f.modulos[x]; }) : (cod.extras || []));
+    const extras = (CFG.EXTRAS_INCLUSOS[degrau] || []).concat(extrasPedidos || []);
     extras.forEach(function (x) { if (CFG.EXTRAS.indexOf(x) >= 0) modulos[x] = true; });
 
     let personagem = '';
@@ -134,7 +151,7 @@ function criar_(b) {
     const prazo = CFG.PRAZOS[degrau];
     const rec = {
       id: id, pastaId: pasta.getId(), criado: Date.now(), status: 'ativa', degrau: degrau,
-      sal: sal, pinHash: hash_(sal + pin), contato: limpar_(f.contato, 120),
+      sal: sal, pinHash: pinHash, contato: limpar_(f.contato, 120),
       envioAte: somarDias_(data, prazo.envio), acessoAte: somarDias_(data, prazo.acesso),
       publico: {
         versao: 1, id: id, aniversariante: nome, idade: f.idade ? Math.max(0, Math.min(120, Number(f.idade))) : null,
@@ -147,9 +164,90 @@ function criar_(b) {
     };
     reg[id] = rec;
     salvarRegistro_(reg);
-    if (cod) { cod.usado = true; cod.festa = id; cod.em = Date.now(); props.setProperty('CODIGOS', JSON.stringify(codigos)); }
+    if (depois) depois(id);
     return { ok: true, id: id, festa: publico_(rec) };
   });
+}
+
+/* ===================== briefing do Feito pra Você =====================
+   Depois do pagamento, a família responde o assistente em SITE/#briefing. O pedido fica guardado
+   na pasta _briefings e chega por e-mail; quem monta roda montarBriefing() com o protocolo. */
+function briefing_(b) {
+  const cache = CacheService.getScriptCache();
+  const disp = limpar_(b.dispositivo, 40) || 'sem-aparelho';
+  const nDisp = Number(cache.get('bf:' + disp) || 0), nTotal = Number(cache.get('bf:todos') || 0);
+  if (nDisp >= 3 || nTotal >= 40) return { ok: false, erro: 'Recebemos muitos pedidos agora. Tente de novo em algumas horas.' };
+  const f = b.festa || {};
+  const nome = limpar_(f.aniversariante, 30);
+  if (!nome) return { ok: false, erro: 'Falta o nome do aniversariante' };
+  const pin = String(f.pin || '').replace(/\D/g, '');
+  if (pin.length < 6 || pin.length > 8) return { ok: false, erro: 'O PIN precisa ter de 6 a 8 números' };
+  const contato = limpar_(f.contato, 120);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contato)) return { ok: false, erro: 'Confira o e-mail' };
+  cache.put('bf:' + disp, String(nDisp + 1), 6 * 3600); cache.put('bf:todos', String(nTotal + 1), 3600);
+
+  const protocolo = 'BRF-' + Utilities.getUuid().replace(/-/g, '').slice(0, 6).toUpperCase();
+  const sal = Utilities.getUuid();
+  const festa = Object.assign({}, f); delete festa.pin;
+  if (festa.personagemDados && festa.personagemDados.length > 4 * 1024 * 1024) festa.personagemDados = '';
+  const pedido = {
+    protocolo: protocolo, criado: Date.now(), status: 'pendente', festa: festa, sal: sal, pinHash: hash_(sal + pin),
+    temaDesejado: limpar_(b.temaDesejado, 80), obs: limpar_(b.obs, 600), pedido: limpar_(b.pedido, 120), contato: contato
+  };
+  subpasta_(raiz_(), '_briefings').createFile(protocolo + '.json', JSON.stringify(pedido), 'application/json');
+
+  const linhas = [
+    'Protocolo: ' + protocolo, 'Aniversariante: ' + nome + (f.idade ? ', ' + f.idade + ' anos' : ''),
+    'Data: ' + (f.data ? dataBR_(f.data) : '-') + (f.horario ? ' às ' + limpar_(f.horario, 5) : ''), 'Local: ' + (limpar_(f.local, 80) || '-'),
+    'Tema desejado: ' + pedido.temaDesejado, 'Cores: ' + (f.paleta === 'pastel' ? 'Sonho pastel' : 'Festa colorida'),
+    'Foto do aniversariante: ' + (festa.personagemDados ? 'sim' : 'não'), 'Observações: ' + (pedido.obs || '-'),
+    'Compra no nome de: ' + pedido.pedido, 'E-mail da família: ' + contato, '',
+    'Para montar: no Apps Script, ponha o protocolo em BRIEFING_ALVO e rode montarBriefing().'
+  ];
+  try { MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'Novo briefing: ' + nome + ' (' + protocolo + ')', linhas.join('\n')); } catch (x) {}
+  try {
+    MailApp.sendEmail(contato, 'Recebemos o pedido do álbum da festa de ' + nome,
+      'Oi! Recebemos as informações da festa de ' + nome + ' (protocolo ' + protocolo + ').\n\n' +
+      'Agora é com a gente: vamos montar o álbum no tema da festa e mandar os links para este e-mail.\n\nÁlbum da Festa');
+  } catch (x) {}
+  return { ok: true, protocolo: protocolo };
+}
+
+// >>> edite antes de rodar montarBriefing()
+const BRIEFING_ALVO = '';   // ex.: 'BRF-1A2B3C' (vem no e-mail do pedido)
+function montarBriefing() {
+  const it = subpasta_(raiz_(), '_briefings').getFilesByName(BRIEFING_ALVO + '.json');
+  if (!BRIEFING_ALVO || !it.hasNext()) throw new Error('Briefing não encontrado: ' + BRIEFING_ALVO);
+  const arq = it.next(), p = JSON.parse(arq.getBlob().getDataAsString());
+  if (p.status === 'montado') { Logger.log('Este briefing já virou a festa ' + p.festaId); return; }
+  const r = criarFesta_(p.festa, 'fpv', [], p.sal, p.pinHash, null);
+  p.status = 'montado'; p.festaId = r.id; p.montadoEm = Date.now();
+  arq.setContent(JSON.stringify(p));
+  const base = CFG.SITE + '/?f=' + encodeURIComponent(r.id);
+  const links = ['Convidados (vai no QR das mesas): ' + base, 'Telão (abra no computador ligado à TV): ' + base + '#telao',
+    'Área dos pais (entra com o PIN que vocês escolheram): ' + base + '#pais', 'QR para imprimir: ' + base + '#qr'];
+  Logger.log('Festa criada: ' + r.id + '\n' + links.join('\n'));
+  Logger.log('Tema pedido: ' + (p.temaDesejado || '-') + '. Para aplicar um tema personalizado, use trocarTema().');
+  Logger.log('Os links vão para a família quando você rodar enviarLinksBriefing() (depois de conferir o tema).');
+}
+function enviarLinksBriefing() {
+  const it = subpasta_(raiz_(), '_briefings').getFilesByName(BRIEFING_ALVO + '.json');
+  if (!BRIEFING_ALVO || !it.hasNext()) throw new Error('Briefing não encontrado: ' + BRIEFING_ALVO);
+  const p = JSON.parse(it.next().getBlob().getDataAsString());
+  if (!p.festaId) throw new Error('Rode montarBriefing() antes');
+  const base = CFG.SITE + '/?f=' + encodeURIComponent(p.festaId);
+  MailApp.sendEmail(p.contato, 'O álbum da festa de ' + p.festa.aniversariante + ' está pronto',
+    'Oi! O álbum está pronto. Guarde estes links:\n\n' +
+    'Convidados (é o que vai no QR das mesas): ' + base + '\n' +
+    'Telão (abra no computador ligado à TV): ' + base + '#telao\n' +
+    'Área dos pais (entra com o PIN que vocês escolheram): ' + base + '#pais\n' +
+    'QR para imprimir: ' + base + '#qr\n\nBoa festa!\nÁlbum da Festa');
+  Logger.log('Links enviados para ' + p.contato);
+}
+function listarBriefings() {
+  const it = subpasta_(raiz_(), '_briefings').getFiles(), linhas = [];
+  while (it.hasNext()) { const p = JSON.parse(it.next().getBlob().getDataAsString()); linhas.push(p.protocolo + ' · ' + p.status + ' · ' + p.festa.aniversariante + ' · ' + p.contato + (p.festaId ? ' · festa ' + p.festaId : '')); }
+  Logger.log(linhas.length ? linhas.join('\n') : 'Nenhum briefing');
 }
 
 /* ===================== fotos ===================== */
@@ -519,8 +617,23 @@ function gerarCodigo() {
   const codigos = JSON.parse(props.getProperty('CODIGOS') || '{}');
   let c; do { c = 'ALB-' + Utilities.getUuid().replace(/-/g, '').slice(0, 6).toUpperCase(); } while (codigos[c]);
   codigos[c] = { degrau: DEGRAU_DO_CODIGO, extras: EXTRAS_DO_CODIGO, usado: false, criado: Date.now() };
+  // Assinatura da família: o mesmo código cria festas ilimitadas por 1 ano
+  if (DEGRAU_DO_CODIGO === 'familia') { codigos[c].ilimitado = true; codigos[c].validoAte = somarDias_(hoje_(), 365); codigos[c].festas = []; }
   props.setProperty('CODIGOS', JSON.stringify(codigos));
-  Logger.log('Código: ' + c + ' (' + DEGRAU_DO_CODIGO + (EXTRAS_DO_CODIGO.length ? ' + ' + EXTRAS_DO_CODIGO.join(', ') : '') + ')');
+  Logger.log('Código: ' + c + ' (' + DEGRAU_DO_CODIGO + (EXTRAS_DO_CODIGO.length ? ' + ' + EXTRAS_DO_CODIGO.join(', ') : '') +
+    (codigos[c].ilimitado ? '; festas ilimitadas até ' + dataBR_(codigos[c].validoAte) : '') + ')');
+}
+
+// renova a Assinatura da família por mais 1 ano (o código continua o mesmo)
+const CODIGO_ALVO = '';   // ex.: 'ALB-1A2B3C'
+function renovarAssinatura() {
+  const props = PropertiesService.getScriptProperties();
+  const codigos = JSON.parse(props.getProperty('CODIGOS') || '{}');
+  const c = codigos[String(CODIGO_ALVO).trim().toUpperCase()];
+  if (!c || !c.ilimitado) throw new Error('Código de assinatura não encontrado: ' + CODIGO_ALVO);
+  c.validoAte = somarDias_(c.validoAte && c.validoAte > hoje_() ? c.validoAte : hoje_(), 365);
+  props.setProperty('CODIGOS', JSON.stringify(codigos));
+  Logger.log('Assinatura ' + CODIGO_ALVO + ' válida até ' + dataBR_(c.validoAte) + ' (' + (c.festas || []).length + ' festas criadas)');
 }
 
 function listarFestas() {

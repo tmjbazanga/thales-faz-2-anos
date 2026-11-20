@@ -552,7 +552,7 @@
 /* CONFIG do produto — vale para todas as festas. Os dados de cada festa vêm do festa.json (back-end). */
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzr7Nz1CPeU5jg6hmflbnpWBEP2q7LOzSv4JtLEfXXTNI5T3wmpGPVclqWxBMPstyT2/exec',   // App da Web do Apps Script central (termina em /exec)
-  LINK_VENDA: 'https://SEU-SITE/album-da-festa',   // página de vendas, usada na assinatura do telão
+  LINK_VENDA: 'https://albumdafesta.github.io',   // página de vendas, usada na assinatura do telão
   TROCA_SEGUNDOS: 8,       // tempo de cada foto no telão
   ATUALIZA_SEGUNDOS: 15,   // de quanto em quanto tempo o telão busca fotos novas
   LADO_MAX: 2048,          // maior lado da foto principal (px)
@@ -600,7 +600,7 @@ const PALETAS = {
 };
 const FESTA_PADRAO = { versao: 1, id: '', aniversariante: 'Aniversariante', idade: null, data: '', horario: '', local: '', tema: 'baloes', paleta: 'colorida',
   cores: null, personagem: '', boasVindas: 'Tire fotos da festa e mande para o álbum. Elas aparecem no telão!',
-  modulos: { album: true, telao: true, video: false, playlist: false, pescaria: false }, baus: 30, assinatura: true, envioAberto: true, status: 'ativa' };
+  modulos: { album: true, telao: true, videos: true, video: true, playlist: true, pescaria: false }, baus: 30, assinatura: true, envioAberto: true, status: 'ativa' };
 let FESTA = { ...FESTA_PADRAO };
 const festaId = () => new URLSearchParams(location.search).get('f') || '';
 const N = () => FESTA.aniversariante || 'Aniversariante';
@@ -628,7 +628,9 @@ const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $ = s => document.querySelector(s);
 const configurado = () => /^https:\/\/script\.google\.com\//.test(CONFIG.SCRIPT_URL) && !!festaId() && !EM_PREVIA();
-const EM_PREVIA = () => location.hash === '#previa' || location.hash === '#criar' || location.hash.startsWith('#previa-');
+const EM_CRIAR = () => location.hash === '#criar' || location.hash === '#briefing';
+const BRIEFING = () => location.hash === '#briefing';
+const EM_PREVIA = () => location.hash === '#previa' || EM_CRIAR() || location.hash.startsWith('#previa-');
 const linkConvidado = () => location.href.split('#')[0].split('?')[0] + (festaId() ? '?f=' + encodeURIComponent(festaId()) : '');
 const local = {
   chave(k) { return 'album-festa:' + (festaId() || 'sem-festa') + ':' + k; },
@@ -1166,7 +1168,7 @@ function render() {
   document.body.className = '';
   T.rodando = false;
   const rota = location.hash.replace('#', '');
-  if (rota === 'criar') return criar();
+  if (rota === 'criar' || rota === 'briefing') { try { sessionStorage.setItem('album-modo', '#' + rota); } catch {} return criar(); }
   if (!festaId() && !EM_PREVIA()) return semFesta();
   if (EM_PREVIA()) usarRascunho();
   if (FESTA.status === 'encerrada') return encerrada();
@@ -1182,7 +1184,7 @@ window.addEventListener('hashchange', async () => {
   if (!EM_PREVIA() && FESTA._rascunho) { FESTA = { ...FESTA_PADRAO, ...(local.get('festa', null) || {}) }; await carregarTema(); }
   render();
 });
-const avisoConfig = () => EM_PREVIA() ? `<div class="faixaPrevia">Prévia do álbum · nada é enviado · <a href="#criar">voltar ao assistente</a></div>`
+const avisoConfig = () => EM_PREVIA() ? `<div class="faixaPrevia">Prévia do álbum · nada é enviado · <a href="${(() => { try { return sessionStorage.getItem('album-modo') || '#criar'; } catch { return '#criar'; } })()}">voltar ao assistente</a></div>`
   : configurado() ? '' : `<div class="aviso">Falta colar a <b>SCRIPT_URL</b> no index.html (veja o LEIA-ME).</div>`;
 function usarRascunho() {
   const r = rascunho();
@@ -2466,6 +2468,7 @@ function rascunho() {
 }
 function salvarRascunho(r) { try { localStorage.setItem(RASCUNHO, JSON.stringify(r)); } catch { toast('A foto ficou grande demais para guardar. Tente outra.'); } }
 const PASSOS = ['Visual', 'Aniversariante', 'Quando e onde', 'Boas-vindas', 'Área dos pais', 'Revisar'];
+let briefingEnviado = null;
 let passoC = 0, criada = null;
 function criar() {
   document.body.className = 'sem-barra';
@@ -2473,6 +2476,7 @@ function criar() {
   FESTA = { ...FESTA_PADRAO, ...r, _rascunho: true, aniversariante: r.aniversariante || 'Aniversariante' };
   Tema = TEMAS[FESTA.tema] || TEMAS.baloes; Tema.aplicar();
   if (criada) return criarPronto();
+  if (BRIEFING() && briefingEnviado) return briefingPronto();
   const ultimo = passoC === PASSOS.length - 1;
   $('#app').innerHTML = `${Tema.fundo()}
     <div class="criar">
@@ -2483,15 +2487,16 @@ function criar() {
     </div>
     <nav class="barraC"><div class="in">
       ${passoC ? `<button class="btn-sec" data-c="voltar">Voltar</button>` : ''}
-      <button data-c="${ultimo ? 'criar' : 'seguir'}">${ultimo ? 'Criar álbum' : 'Continuar'}</button>
+      <button data-c="${ultimo ? (BRIEFING() ? 'briefing' : 'criar') : 'seguir'}">${ultimo ? (BRIEFING() ? 'Enviar para montarmos' : 'Criar álbum') : 'Continuar'}</button>
     </div></nav>`;
-  $('#formC').addEventListener('submit', e => { e.preventDefault(); $('[data-c=seguir], [data-c=criar]')?.click(); });
+  $('#formC').addEventListener('submit', e => { e.preventDefault(); $('[data-c=seguir], [data-c=criar], [data-c=briefing]')?.click(); });
   const f = $('#formC input:not([type=file]):not([type=checkbox]), #formC textarea'); if (f && passoC) f.focus({ preventScroll: true });
 }
 const campo = (id, rotulo, html, dica = '') => `<div class="field"><label for="${id}">${rotulo}</label>${html}${dica ? `<span class="hint">${dica}</span>` : ''}<span class="erroC" id="e_${id}" aria-live="polite"></span></div>`;
 function passoHtml(n, r) {
   const v = k => esc(r[k] ?? '');
-  if (n === 0) return `<h1>Escolha o visual</h1><p class="sub">As cores aparecem no celular dos convidados, no telão e no QR das mesas. Dá para trocar depois.</p>
+  const abertura = BRIEFING() && n === 0 ? `<div class="aviso" style="margin:0 0 16px">Obrigado pela compra! Responda estes passos e a gente monta o álbum da festa para vocês.</div>` : '';
+  if (n === 0) return abertura + `<h1>${BRIEFING() ? 'Cores da festa' : 'Escolha o visual'}</h1><p class="sub">As cores aparecem no celular dos convidados, no telão e no QR das mesas. Dá para trocar depois.</p>
     <div class="opcoesTema" role="group" aria-label="Paleta">${Object.entries(PALETAS).map(([k, p]) =>
       `<button type="button" class="opTema" data-paleta="${k}" aria-pressed="${r.paleta === k}">${heroBaloes(p)}${esc(p.nome)}</button>`).join('')}</div>`;
   if (n === 1) return `<h1>Quem faz aniversário?</h1><p class="sub">O nome aparece grande no topo do álbum e no telão.</p>
@@ -2512,7 +2517,7 @@ function passoHtml(n, r) {
     ${campo('cPin', 'PIN (6 a 8 números)', `<input id="cPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8" value="${v('pin')}">`, 'Guarde este número. Quem tiver o PIN entra na área dos pais.')}
     ${campo('cEmail', 'E-mail para avisos', `<input id="cEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" value="${v('contato')}">`, 'Avisamos antes do álbum sair do ar, com o link para baixar as fotos.')}`;
   const br = r.data ? new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR') : '–';
-  return `<h1>Tudo certo?</h1><p class="sub">Veja a prévia antes de criar. Depois de criado, o link já pode ir para os convidados.</p>
+  return `<h1>${BRIEFING() ? 'Quase lá!' : 'Tudo certo?'}</h1><p class="sub">${BRIEFING() ? 'Confira os dados e conte o tema da festa. A gente monta e manda os links por e-mail.' : 'Veja a prévia antes de criar. Depois de criado, o link já pode ir para os convidados.'}</p>
     <div class="resumo">
       <div><span>Visual</span><b>${esc((PALETAS[r.paleta] || PALETAS.colorida).nome)}</b></div>
       <div><span>Aniversariante</span><b>${esc(r.aniversariante)}${r.idade ? ', ' + esc(r.idade) + ' anos' : ''}</b></div>
@@ -2521,8 +2526,11 @@ function passoHtml(n, r) {
       <div><span>Foto no telão</span><b>${r.personagem ? 'Sim' : 'Não'}</b></div>
       <div><span>E-mail</span><b>${esc(r.contato || '–')}</b></div></div>
     <div class="dupla"><a class="btn btn-sec" href="#previa">Ver no celular</a><a class="btn btn-sec" href="#previa-telao">Ver no telão</a></div>
-    ${campo('cCodigo', 'Código de ativação', `<input id="cCodigo" autocomplete="off" autocapitalize="characters" placeholder="Ex.: ALB-7F3K2Q" value="${v('codigo')}">`, 'Você recebe o código por e-mail depois da compra.')}
-    <button type="button" class="btn-txt" data-c="json">${ic('baixar')}Baixar festa.json</button>`;
+    ${BRIEFING() ? `${campo('cTemaDesejado', 'Tema da festa', `<input id="cTemaDesejado" maxlength="80" placeholder="Ex.: Fundo do mar, Safári, Princesas" value="${v('temaDesejado')}">`, 'O álbum e o telão ficam no tema que vocês escolherem.')}
+    ${campo('cObs', 'Algo mais que a gente precisa saber?', `<textarea id="cObs" maxlength="600" placeholder="Ex.: personagem preferido, cores, nomes que devem aparecer, papelaria que querem imprimir">${v('obs')}</textarea>`, 'Opcional.')}
+    ${campo('cPedido', 'Nome ou e-mail usado na compra', `<input id="cPedido" maxlength="120" autocomplete="off" value="${v('pedido')}">`, 'Para a gente achar o seu pagamento.')}`
+    : `${campo('cCodigo', 'Código de ativação', `<input id="cCodigo" autocomplete="off" autocapitalize="characters" placeholder="Ex.: ALB-7F3K2Q" value="${v('codigo')}">`, 'Você recebe o código por e-mail depois da compra.')}
+    <button type="button" class="btn-txt" data-c="json">${ic('baixar')}Baixar festa.json</button>`}`;
 }
 function erroC(id, msg) { const e = $('#e_' + id); if (e) e.textContent = msg; if (msg) $('#' + id)?.focus(); return !msg; }
 function lerPasso(r) {
@@ -2540,14 +2548,20 @@ function lerPasso(r) {
   if (passoC === 4) {
     r.pin = val('cPin').replace(/\D/g, ''); r.contato = val('cEmail');
     if (r.pin.length < 6) return erroC('cPin', 'O PIN precisa ter de 6 a 8 números.');
+    if (BRIEFING() && !r.contato) return erroC('cEmail', 'Coloque o e-mail: é por ele que mandamos os links do álbum.');
     if (r.contato && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.contato)) return erroC('cEmail', 'Confira o e-mail. Ex.: voce@exemplo.com');
   }
-  if (passoC === 5) r.codigo = val('cCodigo').toUpperCase();
+  if (passoC === 5 && !BRIEFING()) r.codigo = val('cCodigo').toUpperCase();
+  if (passoC === 5 && BRIEFING()) {
+    r.temaDesejado = val('cTemaDesejado'); r.obs = val('cObs'); r.pedido = val('cPedido');
+    if (!r.temaDesejado) return erroC('cTemaDesejado', 'Conte o tema da festa.');
+    if (!r.pedido) return erroC('cPedido', 'Coloque o nome ou o e-mail usado no pagamento.');
+  }
   return true;
 }
 // o arquivo baixado nunca leva o PIN; só a criação (envio direto ao servidor) leva
 function festaJson(r, comPin = false) {
-  const { codigo, _rascunho, envioAberto, status, personagem, pin, ...resto } = r;
+  const { codigo, _rascunho, envioAberto, status, personagem, pin, temaDesejado, obs, pedido, ...resto } = r;
   if (comPin) resto.pin = pin;
   return { ...resto, versao: 1, tema: r.tema || 'baloes', personagem: '', personagemDados: personagem ? personagem.split(',')[1] : '' };
 }
@@ -2561,13 +2575,13 @@ async function fotoPersonagem(file) {
   } finally { URL.revokeObjectURL(url); }
 }
 document.addEventListener('change', async e => {
-  if (location.hash !== '#criar' || e.target.id !== 'cFoto') return;
+  if (!EM_CRIAR() || e.target.id !== 'cFoto') return;
   const f = e.target.files[0]; if (!f) return;
   try { const r = rascunho(); r.boasVindas = ($('#cBoas')?.value || r.boasVindas); r.personagem = await fotoPersonagem(f); salvarRascunho(r); criar(); }
   catch { toast('Não conseguimos abrir essa foto. Tente outra.'); }
 });
 document.addEventListener('click', async e => {
-  if (location.hash !== '#criar') return;
+  if (!EM_CRIAR()) return;
   const pal = e.target.closest('[data-paleta]');
   if (pal) { const r = rascunho(); r.paleta = pal.dataset.paleta; r.tema = 'baloes'; salvarRascunho(r); return criar(); }
   const c = e.target.closest('[data-c]')?.dataset.c; if (!c) return;
@@ -2581,6 +2595,18 @@ document.addEventListener('click', async e => {
     a.download = 'festa.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); return;
   }
   if (c === 'copiar') { try { await navigator.clipboard.writeText(e.target.closest('[data-link]').dataset.link); toast('Link copiado'); } catch { toast('Não deu para copiar. Segure o link para copiar.'); } return; }
+  if (c === 'briefing') {
+    if (!lerPasso(r)) return; salvarRascunho(r);
+    const b = e.target.closest('button'); b.disabled = true; b.textContent = 'Enviando…';
+    try {
+      const resp = await apiPost({ acao: 'briefing', dispositivo: idAparelho(), festa: festaJson(r, true), temaDesejado: r.temaDesejado, obs: r.obs, pedido: r.pedido });
+      briefingEnviado = { protocolo: resp.protocolo, email: r.contato }; localStorage.removeItem(RASCUNHO); briefingPronto();
+    } catch (err) {
+      b.disabled = false; b.textContent = 'Enviar para montarmos';
+      erroC('cPedido', /PIN|nome|e-mail|muitos/i.test(err.message) ? err.message : 'Não conseguimos enviar agora. Verifique a internet e tente de novo.');
+    }
+    return;
+  }
   if (c === 'criar') {
     lerPasso(r); salvarRascunho(r);
     if (!r.codigo) return erroC('cCodigo', 'Cole o código de ativação que você recebeu.');
@@ -2595,6 +2621,12 @@ document.addEventListener('click', async e => {
     }
   }
 });
+function briefingPronto() {
+  $('#app').innerHTML = `${Tema.fundo()}<div class="criar"><h1 style="margin-top:24px">Recebemos!</h1>
+    <p class="sub">Agora é com a gente: vamos montar o álbum no tema da festa e mandar os links para <b>${esc(briefingEnviado.email)}</b>.</p>
+    <div class="resumo"><div><span>Protocolo</span><b>${esc(briefingEnviado.protocolo)}</b></div></div>
+    <p class="sub" style="margin-top:16px">Guarde o PIN que você escolheu: é com ele que vocês entram na área dos pais.</p></div>`;
+}
 function criarPronto() {
   const base = location.href.split('#')[0].split('?')[0] + '?f=' + encodeURIComponent(criada);
   const link = (titulo, dica, url) => `<div class="linkL" data-link="${esc(url)}"><div class="txt"><b>${titulo}</b>${dica}<code>${esc(url)}</code></div>
