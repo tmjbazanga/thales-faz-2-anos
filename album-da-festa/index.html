@@ -904,7 +904,18 @@ function toast(msg, desfazer, ms = 3200) {
 }
 const imgUrl = (id, w) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}`;
 const imgUrl2 = (id, w) => `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w${w}`;
-const videoUrl = id => `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`;
+// o Drive não entrega vídeo direto para a tag <video>; o back-end devolve o arquivo da festa e o app monta o vídeo no aparelho
+const videoCache = new Map();
+async function videoSrc(id) {
+  if (videoCache.has(id)) return videoCache.get(id);
+  const token = location.hash === '#pais' ? sessionStorage.getItem('album-token') : '';
+  const r = await apiGet({ acao: 'video', id, ...(token ? { token } : {}) });
+  const bin = Uint8Array.from(atob(r.dados), c => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bin], { type: r.mime || 'video/mp4' }));
+  videoCache.set(id, url);
+  if (videoCache.size > 8) { const [velho, u] = videoCache.entries().next().value; URL.revokeObjectURL(u); videoCache.delete(velho); }
+  return url;
+}
 const ehVideo = f => f && (f.tipo === 'video' || /^video\//.test(f.mime || ''));
 const videoLiberado = () => !FESTA.modulos || FESTA.modulos.videos !== false;
 const durTxt = s => s ? `0:${String(Math.round(s)).padStart(2, '0')}` : '';
@@ -1323,10 +1334,16 @@ function desenharLb() {
   const d = document.createElement('div'); d.className = 'lb'; d.id = 'lb'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Foto');
   d.innerHTML = `
     <div class="barraLb"><span>${lb.i + 1} de ${lb.lista.length}</span><button class="btn-icone" data-lb="fechar" aria-label="Fechar">${ic('x')}</button></div>
-    <div class="foto" data-lb="fechar">${ehVideo(f) ? `<video src="${videoUrl(f.id)}" ${(f.mini640 || f.mini) && !String(f.mini640 || f.mini).startsWith('data:') ? `poster="${imgUrl(f.mini640 || f.mini, 640)}"` : ''} controls playsinline preload="metadata"></video>` : imgTag(f.id, 1600, 'loading="eager"', f.mini || '')}</div>
+    <div class="foto" data-lb="fechar">${ehVideo(f) ? `<video ${(f.mini640 || f.mini) && !String(f.mini640 || f.mini).startsWith('data:') ? `poster="${imgUrl(f.mini640 || f.mini, 640)}"` : f.mini ? `poster="${esc(f.mini)}"` : ''} controls playsinline aria-label="Vídeo de ${esc(f.nome || 'convidado')}"></video>` : imgTag(f.id, 1600, 'loading="eager"', f.mini || '')}</div>
     <div class="info">${f.nome ? `<b>${esc(f.nome)}</b>` : ''}${f.recado ? `<span>“${esc(f.recado)}”</span>` : ''}</div>
     <div class="navLb"><button data-lb="ant" ${lb.i === 0 ? 'disabled' : ''}>${ic('voltar')}Anterior</button><button data-lb="prox" ${lb.i >= lb.lista.length - 1 ? 'disabled' : ''}>Próxima${ic('avancar')}</button></div>`;
   document.body.appendChild(d);
+  if (ehVideo(f)) {
+    const v = d.querySelector('video'), info = d.querySelector('.info'), aviso = document.createElement('span');
+    aviso.textContent = 'Carregando o vídeo…'; info.appendChild(aviso);
+    videoSrc(f.id).then(u => { if (v.isConnected) { v.src = u; aviso.remove(); } })
+      .catch(() => { aviso.textContent = 'Não conseguimos carregar o vídeo agora. Tente de novo.'; });
+  }
   // deslizar para o lado troca de foto
   let x0 = null;
   d.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
@@ -1542,8 +1559,9 @@ async function proximaFoto() {
 
 // vídeo no telão: toca sem som e passa para a próxima quando acaba (máx. 30 s); se não carregar, mostra a capa
 async function mostrarVideoTelao(f) {
-  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = videoUrl(f.id);
-  const ok = await new Promise(r => { v.oncanplay = () => r(true); v.onerror = () => r(false); setTimeout(() => r(false), 10000); });
+  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto';
+  let ok = false;
+  try { v.src = await videoSrc(f.id); ok = await new Promise(r => { v.oncanplay = () => r(true); v.onerror = () => r(false); setTimeout(() => r(false), 10000); }); } catch {}
   if (!T.rodando || location.hash !== '#telao') return;
   if (!ok && !f.mini) { timers.push(setTimeout(proximaFoto, 500)); return; }
   T.camada = 1 - T.camada;

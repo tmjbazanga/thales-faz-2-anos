@@ -44,6 +44,7 @@ function doGet(e) {
     if (p.acao === 'ping') return json_({ ok: true });
     const rec = festa_(p.f);
     if (p.acao === 'festa') return json_({ ok: true, festa: publico_(rec) });
+    if (p.acao === 'video') return json_(video_(rec, p));
     if (p.acao === 'pesca') return json_(Object.assign({ ok: true, momento: estado_(rec).momento || null }, pescaStatus_(estado_(rec).pesca)));
     // lista de fotos (convidados, telão) ou visão dos pais (com PIN)
     const pais = !!p.token;
@@ -202,6 +203,15 @@ function enviar_(rec, b) {
     salvarIndice_(rec, idx);
     return { ok: true, foto: foto };
   });
+}
+
+// entrega um vídeo da própria festa (o Drive não serve vídeo direto para o navegador); oculto só com a sessão dos pais
+function video_(rec, p) {
+  const f = indice_(rec).filter(function (x) { return x.id === p.id && x.tipo === 'video'; })[0];
+  if (!f) return { ok: false, erro: 'Vídeo não encontrado' };
+  if (f.oculta) sessaoOuErro_(rec, p.token);
+  const blob = DriveApp.getFileById(f.id).getBlob();
+  return { ok: true, mime: f.mime || blob.getContentType(), dados: Utilities.base64Encode(blob.getBytes()) };
 }
 
 function ocultar_(rec, b) {
