@@ -104,4 +104,5 @@ Os prazos contam da data da festa. O gatilho diário segue esta ordem:
 - **`LINK_VENDA`:** a definir.
 - **Ícones:** `icon-192.png` e `icon-512.png` ainda são os da festa do Thales. Trocar por um ícone do produto.
 - **Economia de espaço:** medir na festa de teste (2048 px contra 2560 px da versão do Thales).
-- **Back-end:** não foi testado em conta Google real. Os testes visuais usaram um servidor simulado. O teste real é o GATE 3.
+- **Back-end:** publicado na conta do produto (albumdafesta.app@gmail.com), versão 2. Testado de verdade: criação de festa, PIN, sessão, fotos, vídeo, nome/idade, paleta e playlist. Falta o teste com celulares e telão na festa de teste (GATE 3).
+- **Vídeo da festa no telão:** fica salvo só no aparelho e no navegador em que foi enviado. O app avisa isso no telão e na área dos pais.

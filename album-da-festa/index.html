@@ -329,6 +329,8 @@
   .tl .iniciar .soltar.sobre { background:var(--agua2); border-color:var(--marinho); }
   .tl .iniciar .soltar video { display:block; width:100%; max-height:150px; border-radius:10px; background:#000; margin-bottom:8px; }
   .tl .iniciar .ok { color:#1e7a3c; font-weight:700; }
+  .avisoVideo { grid-column:1 / -1; margin:0; font-size:13px; line-height:1.4; color:#7a4a00; background:#fff4dc; border:1px solid #f0d49a; border-radius:12px; padding:10px 12px; text-align:left; }
+  .tl .iniciar .cartao p.avisoVideo { color:#7a4a00; font-size:13px; }
   .previaSpotify iframe { display:block; width:100%; border:0; border-radius:12px; margin-top:10px; }
   /* ---------- falas do Thales no telão ---------- */
   .falaTl { position:fixed; left:2vw; bottom:3vh; z-index:50; display:flex; align-items:flex-end; gap:1vw; pointer-events:none;
@@ -1460,6 +1462,7 @@ function telao() {
             <div class="soltar" id="soltarVideo"><div id="videoInfo">Verificando…</div></div>
             <div class="acoes"><button class="btn-sec" id="escolherVideo">${ic('galeria')}<span id="txtEscolher">Subir vídeo</span></button>
               <span class="info">Na festa: botão "Tocar vídeo" na área dos pais, ou tecla V.</span></div>
+            <p class="avisoVideo"><b>Atenção:</b> O vídeo fica salvo só no aparelho e no navegador em que foi enviado. Se no dia da festa o telão for aberto em outro computador, suba o vídeo de novo por lá.</p>
             <input type="file" id="arquivoVideo" accept="video/*" hidden>
           </div>` : ''}
           ${mod('playlist') ? `<div class="cartao">
@@ -1686,6 +1689,7 @@ function pais() {
       ${mod('video') ? `<div class="group-title"><span>Vídeo no telão</span></div>
       <div class="card">
         <p style="margin:0 0 10px;color:var(--suave);font-size:14px">O vídeo é escolhido no telão do app, na tela de abertura ("Tem um vídeo para passar no telão?"). Daqui, vocês tocam em tela cheia: a música pausa e, quando o vídeo acaba, as fotos e a música voltam sozinhas.</p>
+        <p class="avisoVideo" style="margin:0 0 10px"><b>Atenção:</b> O vídeo fica salvo só no aparelho e no navegador em que foi enviado. Se no dia da festa o telão for aberto em outro computador, suba o vídeo de novo por lá.</p>
         <div class="momentos"><button data-momento="video">Tocar vídeo</button><button class="btn-sec" data-momento="pararvideo">Parar vídeo</button></div>
       </div>` : ''}
       ${FESTA.personagem ? `<div class="group-title"><span>${esc(N())} fala no telão</span></div>
