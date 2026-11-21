@@ -1,5 +1,5 @@
-const CACHE = 'album-festa-v1';
-const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+const CACHE = 'album-festa-v2';
+const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png',
   './temas/baloes/nuvem.png', './temas/baloes/nuvem-lua-traco.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)));
