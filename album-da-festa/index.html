@@ -957,6 +957,7 @@ const videoLiberado = () => !FESTA.modulos || FESTA.modulos.videos !== false;
 // texto do que o convidado manda: 'fotos e vídeos' quando a festa aceita vídeo
 // código de 6 números para abrir o telão na TV (SITE/tv); o mesmo cálculo roda no back-end
 const codigoTv = id => { let h = 2166136261; for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return String(h % 1000000).padStart(6, '0'); };
+const EM_TV = /[?&]tv=1/.test(location.search);   // telão aberto pelo navegador da TV (tv.html)
 const enderecoTv = () => location.origin + location.pathname.replace(/index\.html$/, '').replace(/\/?$/, '/') + 'tv';
 const FV = (sing) => videoLiberado() ? (sing ? 'foto ou vídeo' : 'fotos e vídeos') : (sing ? 'foto' : 'fotos');
 const durTxt = s => s ? `0:${String(Math.round(s)).padStart(2, '0')}` : '';
@@ -1500,11 +1501,11 @@ function telao() {
             <span class="icone">${ic('musica')}</span>
             <h3>Música da festa</h3>
             <p id="playlistInfo">${Spotify.uri(Spotify.link()) ? '<span class="ok">✓ Playlist escolhida.</span> Começa a tocar quando o telão abrir.' : 'Nenhuma playlist ainda. Cole o link do Spotify na área dos pais, em "Música no telão".'}</p>
-            <div class="acoes"><span class="info">Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.</span></div>
+            <div class="acoes"><span class="info">${EM_TV ? '<b>Atenção:</b> a música do Spotify não toca no navegador da TV. Toque a playlist pelo celular numa caixa de som, ou pelo app do Spotify da TV.' : 'Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.'}</span></div>
           </div>` : ''}
         </div>` : ''}
         <button id="btIniciar" autofocus>Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p>
-        <p class="tvDica">Sem notebook? No navegador da TV, abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b>${codigoTv(festaId())}</b>.</p></div></div>
+        <p class="tvDica">Sem notebook? No navegador da TV, abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b>${codigoTv(festaId())}</b>.${mod('playlist') ? ' A música do Spotify não toca pelo navegador da TV.' : ''}</p></div></div>
       ${mod('video') ? '<div class="videoTl" id="videoTl" hidden><video playsinline></video><button class="fechar" onclick="pararVideo()">Fechar vídeo</button></div>' : ''}
       <button class="sair btn-sec" onclick="location.hash='${EM_PREVIA() ? 'previa' : ''}'">${ic('sair')}Sair do telão</button>
     </div>
@@ -1712,7 +1713,7 @@ function pais() {
       <div class="card">
         <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Três jeitos de colocar o telão na TV. Use o que for mais fácil no dia:</p>
         <ol class="tvJeitos">
-          <li><b>Navegador da TV:</b> abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b class="tvCod">${codigoTv(festaId())}</b>. A TV guarda o código para a próxima vez.</li>
+          <li><b>Navegador da TV:</b> abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b class="tvCod">${codigoTv(festaId())}</b>. A TV guarda o código para a próxima vez.${mod('playlist') ? ' <b>Atenção:</b> por aqui a música do Spotify não toca. Toque a playlist pelo celular numa caixa de som, ou pelo app do Spotify da TV.' : ''}</li>
           <li><b>Notebook no cabo HDMI:</b> abra o link do telão e toque em "Iniciar telão".</li>
           <li><b>Celular ou tablet no cabo:</b> um adaptador USB-C ou Lightning para HDMI liga o celular direto na TV.</li>
         </ol>

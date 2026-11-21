@@ -48,7 +48,7 @@ function desenhar() {
 }
 function digitar(n) { if (codigo.length < 6) { codigo += n; desenhar(); } if (codigo.length === 6) document.getElementById('abrir').focus(); }
 function apagar() { codigo = codigo.slice(0, -1); desenhar(); }
-function irPara(id) { location.href = 'index.html?f=' + encodeURIComponent(id) + '#telao'; }
+function irPara(id) { location.href = 'index.html?f=' + encodeURIComponent(id) + '&tv=1#telao'; }
 function abrir() {
   if (codigo.length !== 6) { document.getElementById('erro').textContent = 'O código tem 6 números.'; return; }
   document.getElementById('erro').textContent = 'Procurando a festa…';
