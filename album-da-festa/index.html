@@ -599,7 +599,7 @@ const PALETAS = {
     nuvem: '#B9D4F0', linha: '#B97566', texto: '#3D3542', marinho: '#3A2F45', suave: '#6E6475', agua1: '#F1EBF8', agua2: '#E2D6F0', agua3: '#C9B6E4', borda: '#E8DFEA', sombra: '58,47,69' }
 };
 const FESTA_PADRAO = { versao: 1, id: '', aniversariante: 'Aniversariante', idade: null, data: '', horario: '', local: '', tema: 'baloes', paleta: 'colorida',
-  cores: null, personagem: '', boasVindas: 'Tire fotos da festa e mande para o álbum. Elas aparecem no telão!',
+  cores: null, personagem: '', boasVindas: 'Tire fotos e grave vídeos da festa e mande para o álbum. Eles aparecem no telão!',
   modulos: { album: true, telao: true, videos: true, video: true, playlist: true, pescaria: false }, baus: 30, assinatura: true, envioAberto: true, status: 'ativa' };
 let FESTA = { ...FESTA_PADRAO };
 const festaId = () => new URLSearchParams(location.search).get('f') || '';
@@ -941,6 +941,8 @@ async function videoSrc(id) {
 }
 const ehVideo = f => f && (f.tipo === 'video' || /^video\//.test(f.mime || ''));
 const videoLiberado = () => !FESTA.modulos || FESTA.modulos.videos !== false;
+// texto do que o convidado manda: 'fotos e vídeos' quando a festa aceita vídeo
+const FV = (sing) => videoLiberado() ? (sing ? 'foto ou vídeo' : 'fotos e vídeos') : (sing ? 'foto' : 'fotos');
 const durTxt = s => s ? `0:${String(Math.round(s)).padStart(2, '0')}` : '';
 // grades usam a miniatura de 640 px (arquivo próprio no Drive); se não houver, a miniatura gerada pelo Drive da foto principal
 const fotoTag = (f, w, extra = '') => ehVideo(f) ? (f.mini ? imgTag(f.mini, w, extra) : '<div class="ph"></div>') : f.mini && w <= 640 ? imgTag(f.mini, w, extra, '', f.id) : imgTag(f.id, w, extra);
@@ -1196,7 +1198,7 @@ function semFesta() {
   document.body.className = 'sem-barra';
   const real = FESTA; FESTA = { ...FESTA_PADRAO, aniversariante: 'Sua festa' }; const arte = heroBaloes(); FESTA = real;
   $('#app').innerHTML = `${Tema.fundo()}<div class="login"><div style="max-width:220px;margin:0 auto">${arte}</div>
-    <h1>Álbum da Festa</h1><p>Abra o link ou o QR code que você recebeu da família para mandar suas fotos.</p>
+    <h1>Álbum da Festa</h1><p>Abra o link ou o QR code que você recebeu da família para mandar suas fotos e vídeos.</p>
     <a class="btn" href="#criar">Montar o álbum da minha festa</a></div>`;
 }
 function encerrada() {
@@ -1219,7 +1221,7 @@ function convidado() {
         ${aberto ? `<section class="card" aria-label="Seus dados">
           <div id="blocoNome">${blocoNome(nome)}</div>
           <div class="recado" id="blocoRecado"></div>
-        </section>` : `<div class="vazio">O envio de fotos desta festa terminou. Você ainda pode ver o álbum abaixo.</div>`}
+        </section>` : `<div class="vazio">O envio de ${FV()} desta festa terminou. Você ainda pode ver o álbum abaixo.</div>`}
         ${mod('pescaria') ? `<a class="card bannerP" href="#pescar">
           <img class="ic" src="${IMG.peixes[2]}" alt="">
           <div class="txt"><b>Pescaria de lembrancinhas</b><span id="pescaSub">${esc(textoBanner())}</span></div>
@@ -1252,9 +1254,9 @@ const aceiteValido = () => { const a = local.get('termos', null); return !!(a &&
 function mostrarTermos() {
   if ($('#termos')) return;
   const d = document.createElement('div'); d.className = 'termos'; d.id = 'termos'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'termosT');
-  d.innerHTML = `<div class="caixa"><h2 id="termosT">Antes de mandar fotos</h2>
+  d.innerHTML = `<div class="caixa"><h2 id="termosT">Antes de mandar ${FV()}</h2>
     <ul><li>As fotos e vídeos que você enviar vão para o álbum da festa de ${esc(N())} e aparecem no telão, com o seu nome.</li>
-      <li>A família pode ocultar qualquer foto e baixar todas depois da festa.</li>
+      <li>A família pode ocultar qualquer ${FV(1)} e baixar tudo depois da festa.</li>
       <li>O álbum fica no ar por um tempo limitado e depois é apagado.</li>
       <li>Fotografe outras crianças só se os pais delas concordarem.</li></ul>
     <details><summary>Termos de uso</summary><div class="textoLegal">${CONFIG.TERMOS}</div></details>
@@ -1272,7 +1274,7 @@ function blocoNome(nome) {
     : `<div class="field">
         <label for="nome">Como você se chama?</label>
         <div class="linhaNome"><input id="nome" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="given-name" enterkeyhint="done"><button data-salvar-nome>Salvar</button></div>
-        <span class="hint">Aparece junto com as suas fotos no telão.</span>
+        <span class="hint">Aparece junto com as suas ${FV()} no telão.</span>
       </div>`;
 }
 function desenharRecado() {
@@ -1281,14 +1283,14 @@ function desenharRecado() {
   el.innerHTML = recadoAberto
     ? `<button data-recado aria-expanded="true">${ic('menos')}Recado para ${esc(N())}</button>
        <div class="field"><textarea id="recado" maxlength="140" placeholder="Ex.: Parabéns! Muitas felicidades!" aria-label="Recado para ${esc(N())}">${esc(valor)}</textarea>
-       <span class="hint">Vai junto com a próxima foto que você enviar.</span></div>`
-    : `<button data-recado aria-expanded="false">${ic('mais')}Deixar um recado com a foto</button>`;
+       <span class="hint">Vai junto com o próximo envio.</span></div>`
+    : `<button data-recado aria-expanded="false">${ic('mais')}Deixar um recado junto</button>`;
 }
 function desenharAbas() {
   const el = $('#abas'); if (!el) return;
   const nMeus = local.get('meus', []).length;
   el.innerHTML = `
-    <button role="tab" data-aba="minhas" aria-selected="${aba === 'minhas'}">Minhas fotos${nMeus ? `<span class="n">${nMeus}</span>` : ''}</button>
+    <button role="tab" data-aba="minhas" aria-selected="${aba === 'minhas'}">${videoLiberado() ? "Meus envios" : "Minhas fotos"}${nMeus ? `<span class="n">${nMeus}</span>` : ''}</button>
     <button role="tab" data-aba="todas" aria-selected="${aba === 'todas'}">Da festa${albumCache.length ? `<span class="n">${albumCache.length}</span>` : ''}</button>`;
 }
 async function renderFila() {
@@ -1319,9 +1321,9 @@ function renderGrade() {
     const meus = local.get('meus', []);
     el.innerHTML = meus.length
       ? `<div class="grade">${meus.map((m, i) => `<button class="ft" ${atraso(i)} data-ver="minhas:${i}" aria-label="${ehVideo(m) ? 'Ver vídeo' : 'Ver foto'}">${ehVideo(m) ? (m.mini640 ? imgTag(m.mini640, 400, '', m.mini) : `<img src="${esc(m.mini)}" alt="">`) + selosVideo(m) : imgTag(m.id, 400, '', m.mini)}</button>`).join('')}</div>`
-      : vazio(1, FESTA.envioAberto === false ? 'Você não enviou fotos para esta festa.' : 'Você ainda não enviou fotos.<br>Toque em <b>Câmera</b> ou <b>Do celular</b> para começar!');
+      : vazio(1, FESTA.envioAberto === false ? `Você não enviou ${FV()} para esta festa.` : `Você ainda não enviou ${FV()}.<br>Toque em <b>Câmera</b> ou <b>Do celular</b> para começar!`);
   } else {
-    if (!albumCarregado) el.innerHTML = vazio('', 'Buscando as fotos da festa…');
+    if (!albumCarregado) el.innerHTML = vazio('', `Buscando as ${FV()} da festa…`);
     else desenharAlbum();
     carregarAlbum();
   }
@@ -1330,7 +1332,7 @@ function desenharAlbum() {
   const el = $('#grade'); if (!el || aba !== 'todas') return;
   el.innerHTML = albumCache.length
     ? `<div class="grade">${albumCache.map((f, i) => `<button class="ft" ${atraso(i)} data-ver="todas:${i}" aria-label="${ehVideo(f) ? 'Vídeo' : 'Foto'} de ${esc(f.nome)}">${fotoTag(f, 400)}${selosVideo(f)}<span class="selo">${esc(f.nome)}</span></button>`).join('')}</div>`
-    : vazio(1, 'Ninguém enviou fotos ainda.<br>Que tal ser a primeira pessoa?');
+    : vazio(1, `Ninguém enviou ${FV()} ainda.<br>Que tal ser a primeira pessoa?`);
 }
 async function carregarAlbum() {
   if (!configurado()) { albumCarregado = true; return aba === 'todas' && desenharAlbum(); }
@@ -1394,7 +1396,7 @@ function salvarNome() {
   const v = ($('#nome')?.value || '').trim();
   if (!v) { $('#nome')?.focus(); return toast('Escreva seu nome para continuar'); }
   local.set('nome', v); $('#blocoNome').innerHTML = blocoNome(v);
-  falar(`Oi, ${v.split(' ')[0]}! Agora tira uma foto!`); Fx.reagir($('[data-bicho=thales]'), 'pulo', 700);
+  falar(`Oi, ${v.split(' ')[0]}! Agora tira uma ${videoLiberado() ? 'foto ou grava um vídeo' : 'foto'}!`); Fx.reagir($('[data-bicho=thales]'), 'pulo', 700);
   // atualiza o nome das fotos que ainda estão na fila
   Fila.todos().then(l => Promise.all(l.filter(i => !i.nome).map(i => Fila.por({ ...i, nome: v })))).then(processar);
 }
@@ -1447,10 +1449,10 @@ function telao() {
       <div class="palco"><div class="camada" id="c0"></div><div class="camada" id="c1"></div></div>
       <div class="ladoTl">
         ${mod('playlist') ? '<div class="spotifyTl" id="spotifyTl" hidden><div id="spotifyFrame"></div></div>' : ''}
-        <div class="qrbox" id="qrbox" hidden><div class="pincel">Mande sua foto!</div><div class="qr" id="qrPeq"></div><small>Aponte a câmera do celular</small></div>
+        <div class="qrbox" id="qrbox" hidden><div class="pincel">Mande sua ${FV(1)}!</div><div class="qr" id="qrPeq"></div><small>Aponte a câmera do celular</small></div>
       </div>
       <div class="vazioTl" id="vazioTl" hidden>
-        <div class="txt"><h2>Tire uma foto e mande pro álbum!</h2><p>Aponte a câmera do celular para o código. Sua foto aparece aqui na tela.</p></div>
+        <div class="txt"><h2>${videoLiberado() ? 'Tire fotos, grave vídeos' : 'Tire uma foto'} e mande pro álbum!</h2><p>Aponte a câmera do celular para o código. O que você mandar aparece aqui na tela.</p></div>
         <div class="qrG qr" id="qrGrande"></div>
       </div>
       ${mod('pescaria') ? '<div class="faixaPesca" id="faixaPesca" hidden>A pescaria está aberta! Pesque sua lembrancinha pelo celular</div>' : ''}
@@ -1556,7 +1558,7 @@ function atualizarVazio() {
   const tem = T.fotos.length > 0;
   if ($('#vazioTl')) $('#vazioTl').hidden = tem;
   if ($('#qrbox')) $('#qrbox').hidden = !tem;
-  const c = $('#contador'); if (c) { c.hidden = !tem; c.textContent = plural(T.fotos.length, 'foto no álbum', 'fotos no álbum'); }
+  const c = $('#contador'); if (c) { c.hidden = !tem; c.textContent = plural(T.fotos.length, 'envio no álbum', 'envios no álbum'); }
   if (!tem) document.querySelectorAll('.camada').forEach(x => x.classList.remove('vis'));
 }
 function embaralhar(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -1634,7 +1636,7 @@ function pais() {
       <div class="login">
         ${Tema.login()}
         <h1>Área dos pais</h1>
-        <p>Digite o PIN para ver e organizar as fotos.</p>
+        <p>Digite o PIN para ver e organizar as ${FV()}.</p>
         <form id="formPin">
           <div class="field"><label for="pin" class="sr">PIN</label>
             <input id="pin" type="password" inputmode="numeric" autocomplete="off" required aria-describedby="pinErro">
@@ -1789,7 +1791,7 @@ function desenharPrazo() {
   const br = iso => iso ? new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR') : '–';
   const zips = paisDados.zip || [];
   el.innerHTML = `<div class="resumo" style="border:0;padding:0">
-      <div><span>Convidados enviam fotos até</span><b>${br(FESTA.envioAte)}</b></div>
+      <div><span>Convidados enviam ${FV()} até</span><b>${br(FESTA.envioAte)}</b></div>
       <div><span>Álbum fica no ar até</span><b>${br(FESTA.acessoAte)}</b></div></div>
     <p style="margin:10px 0;color:var(--suave);font-size:14px">Antes de apagar, avisamos por e-mail. Baixe as fotos em ZIP quando quiser.</p>
     ${zips.map(z => `<a class="btn btn-sec" style="width:100%;margin-bottom:8px" href="${esc(z.url)}" target="_blank" rel="noopener">${ic('baixar')}${esc(z.nome)}</a>`).join('')}
@@ -1815,7 +1817,7 @@ function desenharPais() {
         <a class="btn-icone btn" href="https://drive.google.com/uc?export=download&id=${encodeURIComponent(f.id)}" target="_blank" rel="noopener" aria-label="Baixar foto" title="Baixar foto">${ic('baixar')}</a>
       </div>
     </div>`).join('')
-    : `<div style="grid-column:1/-1">${vazio('', filtroPais === 'ocultas' ? 'Nenhuma foto oculta.' : 'Nenhuma foto ainda. Elas aparecem aqui assim que os convidados enviarem.')}</div>`;
+    : `<div style="grid-column:1/-1">${vazio('', filtroPais === 'ocultas' ? 'Nenhuma foto oculta.' : `Nada ainda. As ${FV()} aparecem aqui assim que os convidados enviarem.`)}</div>`;
 }
 async function ocultar(id, oculta) {
   const f = paisDados?.fotos.find(x => x.id === id); if (f) { f.oculta = oculta; desenharPais(); }  // resposta imediata
@@ -1849,7 +1851,7 @@ document.addEventListener('click', async e => {
   if (acao === 'semplaylist') return salvarPlaylist('');
   if (acao === 'compartilhar') {
     const url = linkConvidado();
-    try { if (navigator.share) await navigator.share({ title: 'Álbum da festa de ' + N(), text: 'Mande suas fotos da festa de ' + N() + '!', url }); else { await navigator.clipboard.writeText(url); toast('Link copiado'); } } catch {}
+    try { if (navigator.share) await navigator.share({ title: 'Álbum da festa de ' + N(), text: 'Mande suas ' + FV() + ' da festa de ' + N() + '!', url }); else { await navigator.clipboard.writeText(url); toast('Link copiado'); } } catch {}
     return;
   }
   if (acao === 'zip') {
@@ -1904,7 +1906,7 @@ function paginaQr() {
       </div>
       <div class="cartao">
         ${Tema.cartao()}
-        <p class="passo">Aponte a câmera do celular, tire fotos da festa e envie. Elas aparecem no telão!</p>
+        <p class="passo">Aponte a câmera do celular, tire ${FV()} da festa e envie. Aparecem no telão!</p>
         <div class="qrPrint" id="qrPrint"></div>
         <div class="url">${esc(linkConvidado())}</div>
       </div>
