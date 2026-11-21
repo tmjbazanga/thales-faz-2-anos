@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telão na TV · Álbum da Festa</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icone-32.png">
+<style>
+  /* página feita para o navegador da TV: letras grandes, foco bem visível e nada de recursos novos de JavaScript */
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:#F6F1EA; color:#2A2622; font-family:Arial, Helvetica, sans-serif; }
+  .tela { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4vh 4vw; text-align:center; }
+  .marca { display:flex; align-items:center; gap:16px; font-size:3.2vw; font-weight:bold; }
+  .marca img { width:5vw; height:5vw; }
+  .marca span { color:#C2410C; }
+  h1 { font-size:3vw; margin:3vh 0 1vh; }
+  p.ajuda { font-size:1.8vw; color:#6B6157; margin:0 0 3vh; }
+  .cod { display:flex; gap:1.2vw; margin-bottom:3vh; }
+  .cod div { width:6.5vw; height:8.5vw; border-radius:1.2vw; background:#fff; border:0.35vw solid #E6DDD2; font-size:5.5vw; font-weight:bold; line-height:8vw; }
+  .cod div.atual { border-color:#C2410C; }
+  .teclado { display:grid; grid-template-columns:repeat(3, 9vw); gap:1vw; }
+  .teclado button, .acoes button { font:bold 3vw Arial, sans-serif; height:7vw; border-radius:1.2vw; border:0.3vw solid #E6DDD2; background:#fff; color:#2A2622; cursor:pointer; }
+  .teclado button.sec { font-size:1.8vw; }
+  button:focus { outline:0.5vw solid #C2410C; outline-offset:0.3vw; }
+  .acoes { margin-top:3vh; display:flex; gap:1.5vw; }
+  .acoes button { font-size:2vw; padding:0 3vw; background:#C2410C; color:#fff; border-color:#C2410C; }
+  .acoes button.sec { background:#fff; color:#2A2622; border-color:#E6DDD2; }
+  .erro { color:#B3261E; font-size:2vw; min-height:3vh; margin-top:2vh; }
+</style>
+</head><body>
+<div class="tela">
+  <div class="marca"><img src="icone-192.png" alt=""><div>Álbum <span>da</span> Festa</div></div>
+  <h1>Telão na TV</h1>
+  <p class="ajuda">Digite o código de 6 números que aparece na área dos pais.<br>Use os números do controle ou as setas e o OK.</p>
+  <div class="cod" id="cod"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  <div class="teclado" id="teclado"></div>
+  <div class="acoes" id="acoes"><button id="abrir">Abrir telão</button></div>
+  <div class="erro" id="erro"></div>
+</div>
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzr7Nz1CPeU5jg6hmflbnpWBEP2q7LOzSv4JtLEfXXTNI5T3wmpGPVclqWxBMPstyT2/exec';
+var codigo = '';
+function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function ler(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function desenhar() {
+  var caixas = document.getElementById('cod').children;
+  for (var i = 0; i < 6; i++) { caixas[i].textContent = codigo.charAt(i); caixas[i].className = i === codigo.length ? 'atual' : ''; }
+  document.getElementById('erro').textContent = '';
+}
+function digitar(n) { if (codigo.length < 6) { codigo += n; desenhar(); } if (codigo.length === 6) document.getElementById('abrir').focus(); }
+function apagar() { codigo = codigo.slice(0, -1); desenhar(); }
+function irPara(id) { location.href = 'index.html?f=' + encodeURIComponent(id) + '#telao'; }
+function abrir() {
+  if (codigo.length !== 6) { document.getElementById('erro').textContent = 'O código tem 6 números.'; return; }
+  document.getElementById('erro').textContent = 'Procurando a festa…';
+  var x = new XMLHttpRequest();
+  x.open('GET', SCRIPT_URL + '?acao=tv&c=' + codigo);
+  x.onload = function () {
+    var r = {}; try { r = JSON.parse(x.responseText); } catch (e) {}
+    if (r.ok && r.id) { guardar('album-tv-festa', r.id); irPara(r.id); }
+    else document.getElementById('erro').textContent = r.erro || 'Não deu certo. Tente de novo.';
+  };
+  x.onerror = function () { document.getElementById('erro').textContent = 'Sem internet na TV. Confira a conexão e tente de novo.'; };
+  x.send();
+}
+var teclas = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'apagar', '0', 'limpar'], t = document.getElementById('teclado');
+for (var i = 0; i < teclas.length; i++) (function (k) {
+  var b = document.createElement('button'); b.textContent = k === 'apagar' ? 'Apagar' : k === 'limpar' ? 'Limpar' : k;
+  if (k.length > 1) b.className = 'sec';
+  b.onclick = function () { if (k === 'apagar') apagar(); else if (k === 'limpar') { codigo = ''; desenhar(); } else digitar(k); };
+  t.appendChild(b);
+})(teclas[i]);
+document.getElementById('abrir').onclick = abrir;
+// números do controle remoto ou do teclado
+document.addEventListener('keydown', function (e) {
+  var k = e.key || '', c = e.keyCode;
+  if (/^[0-9]$/.test(k)) { digitar(k); e.preventDefault(); }
+  else if (c >= 48 && c <= 57) { digitar(String(c - 48)); e.preventDefault(); }
+  else if (c >= 96 && c <= 105) { digitar(String(c - 96)); e.preventDefault(); }
+  else if (k === 'Backspace' || c === 8) { apagar(); e.preventDefault(); }
+  else if (c >= 37 && c <= 40) { mover(c); e.preventDefault(); }
+});
+// setas do controle: vai para o botão mais próximo na direção apertada
+function mover(c) {
+  var bs = document.querySelectorAll('button'), a = document.activeElement, ra, melhor = null, menor = 1e9;
+  if (!a || a.tagName !== 'BUTTON') { bs[0].focus(); return; }
+  ra = a.getBoundingClientRect();
+  var ax = ra.left + ra.width / 2, ay = ra.top + ra.height / 2;
+  for (var i = 0; i < bs.length; i++) {
+    if (bs[i] === a) continue;
+    var r = bs[i].getBoundingClientRect(), dx = r.left + r.width / 2 - ax, dy = r.top + r.height / 2 - ay;
+    var ok = c === 37 ? dx < -5 : c === 39 ? dx > 5 : c === 38 ? dy < -5 : dy > 5;
+    if (!ok) continue;
+    var d = (c === 37 || c === 39) ? Math.abs(dx) + Math.abs(dy) * 3 : Math.abs(dy) + Math.abs(dx) * 3;
+    if (d < menor) { menor = d; melhor = bs[i]; }
+  }
+  if (melhor) melhor.focus();
+}
+// a TV lembra da última festa
+var ultima = ler('album-tv-festa');
+if (ultima) {
+  var b = document.createElement('button'); b.className = 'sec'; b.textContent = 'Voltar para a última festa';
+  b.onclick = function () { irPara(ultima); };
+  document.getElementById('acoes').appendChild(b);
+}
+desenhar();
+t.firstChild.focus();
+</script>
+</body></html>

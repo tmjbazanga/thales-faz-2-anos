@@ -339,6 +339,9 @@
   .tl .iniciar .soltar.sobre { background:var(--agua2); border-color:var(--marinho); }
   .tl .iniciar .soltar video { display:block; width:100%; max-height:150px; border-radius:10px; background:#000; margin-bottom:8px; }
   .tl .iniciar .ok { color:#1e7a3c; font-weight:700; }
+  .tl .iniciar .tvDica { margin-top:14px; font-size:15px; color:var(--suave); }
+  .tvJeitos { margin:0; padding-left:20px; display:grid; gap:10px; font-size:15px; line-height:1.4; }
+  .tvCod { font-size:20px; letter-spacing:.12em; color:var(--marinho); }
   .avisoVideo { grid-column:1 / -1; margin:0; font-size:13px; line-height:1.4; color:#7a4a00; background:#fff4dc; border:1px solid #f0d49a; border-radius:12px; padding:10px 12px; text-align:left; }
   .tl .iniciar .cartao p.avisoVideo { color:#7a4a00; font-size:13px; }
   .previaSpotify iframe { display:block; width:100%; border:0; border-radius:12px; margin-top:10px; }
@@ -571,7 +574,7 @@ const CONFIG = {
   VIDEO_SEG: 30,           // duração máxima de vídeo
   VIDEO_PREVIA_SEG: 8,     // no telão, o vídeo do convidado passa só os primeiros segundos
   VIDEO_MAX_MB: 25,        // tamanho máximo do vídeo depois de preparado
-  VIDEO_DIRETO_MB: 20,     // até este tamanho (mp4/webm), o vídeo vai como foi gravado
+  VIDEO_DIRETO_MB: 24,     // até este tamanho (mp4/webm), o vídeo vai como foi gravado
   TERMOS_VERSAO: '2026-11-20.3',   // mude a cada nova versão dos textos: o convidado aceita de novo
   // textos (HTML escrito por nós, não vem do usuário)
   TERMOS: `<h3>1. Quem somos e o que este serviço faz</h3><p>O Álbum da Festa é um serviço de álbum colaborativo de fotos para festas. Os convidados enviam fotos por QR code, sem instalar aplicativo e sem criar login, e as fotos aparecem em um telão durante o evento. Ao final, o organizador recebe o álbum em arquivo ZIP.</p>
@@ -952,6 +955,9 @@ async function videoSrc(id) {
 const ehVideo = f => f && (f.tipo === 'video' || /^video\//.test(f.mime || ''));
 const videoLiberado = () => !FESTA.modulos || FESTA.modulos.videos !== false;
 // texto do que o convidado manda: 'fotos e vídeos' quando a festa aceita vídeo
+// código de 6 números para abrir o telão na TV (SITE/tv); o mesmo cálculo roda no back-end
+const codigoTv = id => { let h = 2166136261; for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return String(h % 1000000).padStart(6, '0'); };
+const enderecoTv = () => location.origin + location.pathname.replace(/index\.html$/, '').replace(/\/?$/, '/') + 'tv';
 const FV = (sing) => videoLiberado() ? (sing ? 'foto ou vídeo' : 'fotos e vídeos') : (sing ? 'foto' : 'fotos');
 const durTxt = s => s ? `0:${String(Math.round(s)).padStart(2, '0')}` : '';
 // grades usam a miniatura de 640 px (arquivo próprio no Drive); se não houver, a miniatura gerada pelo Drive da foto principal
@@ -1047,7 +1053,10 @@ async function preparar(file) {
 /* vídeos de até 30 s: capa (640 px e 200 px) tirada do próprio vídeo; arquivos grandes ou .mov são regravados em 720p */
 function carregarVideo(url) {
   return new Promise((res, rej) => {
-    const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.playsInline = true; v.src = url;
+    const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.playsInline = true;
+    v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+    v.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1';
+    document.body.appendChild(v); v.src = url;
     v.onloadedmetadata = () => res(v); v.onerror = () => rej(new Error('vídeo'));
     setTimeout(() => rej(new Error('vídeo')), 15000);
   });
@@ -1085,7 +1094,9 @@ async function regravar(v, seg) {
   const fim = new Promise(r => rec.onstop = r);
   v.currentTime = 0; await new Promise(r => { v.onseeked = r; setTimeout(r, 1500); });
   let vivo = true; const quadro = () => { if (!vivo) return; g.drawImage(v, 0, 0, c.width, c.height); requestAnimationFrame(quadro); };
-  rec.start(1000); await v.play(); quadro();
+  rec.start(1000);
+  try { await v.play(); } catch { v.muted = true; await v.play(); }
+  quadro();
   await new Promise(r => { v.onended = r; setTimeout(r, seg * 1000 + 300); });
   vivo = false; v.pause(); rec.stop(); await fim;
   return new Blob(partes, { type: tipo.split(';')[0] });
@@ -1096,7 +1107,8 @@ async function prepararVideo(file) {
     const v = await carregarVideo(url);
     const dur = v.duration || 0, longo = dur > CONFIG.VIDEO_SEG + 0.5;
     const capa = await capaDoVideo(v);
-    const direto = !longo && /^video\/(mp4|webm)$/.test(file.type) && file.size <= CONFIG.VIDEO_DIRETO_MB * 1e6;
+    const mov = /^video\/quicktime$/.test(file.type) || /\.mov$/i.test(file.name || '');
+    const direto = !longo && (mov || /^video\/(mp4|webm)$/.test(file.type) || /\.(mp4|m4v)$/i.test(file.name || '')) && file.size <= CONFIG.VIDEO_DIRETO_MB * 1e6;
     let blob = file;
     if (!direto) {
       toast(longo ? `O vídeo passa de ${CONFIG.VIDEO_SEG} s: vamos usar só o começo. Mantenha esta tela aberta…` : 'Preparando o vídeo… mantenha esta tela aberta', null, 4000);
@@ -1104,8 +1116,10 @@ async function prepararVideo(file) {
       catch { if (longo) throw new Error('longo'); }
     }
     if (blob.size > CONFIG.VIDEO_MAX_MB * 1e6) throw new Error('grande');
-    return { tipo: 'video', mime: blob.type || file.type || 'video/mp4', dados: await lerBase64(blob), dur: Math.min(dur, CONFIG.VIDEO_SEG), ...capa };
-  } finally { URL.revokeObjectURL(url); }
+    // .mov do iPhone é da mesma família do .mp4: marcado como mp4, o navegador do telão toca
+    const mime = blob === file && mov ? 'video/mp4' : (blob.type || file.type || 'video/mp4');
+    return { tipo: 'video', mime, dados: await lerBase64(blob), dur: Math.min(dur, CONFIG.VIDEO_SEG), ...capa };
+  } finally { URL.revokeObjectURL(url); document.querySelectorAll('body > video[style*="opacity:.01"]').forEach(x => x.remove()); }
 }
 
 async function adicionarFotos(files) {
@@ -1489,7 +1503,8 @@ function telao() {
             <div class="acoes"><span class="info">Entre na sua conta do Spotify neste navegador para tocar as músicas inteiras.</span></div>
           </div>` : ''}
         </div>` : ''}
-        <button id="btIniciar">Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p></div></div>
+        <button id="btIniciar" autofocus>Iniciar telão</button><p>Entra em tela cheia e mantém a tela acesa</p>
+        <p class="tvDica">Sem notebook? No navegador da TV, abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b>${codigoTv(festaId())}</b>.</p></div></div>
       ${mod('video') ? '<div class="videoTl" id="videoTl" hidden><video playsinline></video><button class="fechar" onclick="pararVideo()">Fechar vídeo</button></div>' : ''}
       <button class="sair btn-sec" onclick="location.hash='${EM_PREVIA() ? 'previa' : ''}'">${ic('sair')}Sair do telão</button>
     </div>
@@ -1693,6 +1708,15 @@ function pais() {
         </div>
       </div>
       ${/\[a definir/.test(CONFIG.TERMOS + CONFIG.PRIVACIDADE) ? '<div class="aviso" style="margin:16px 0 0">Os termos de uso e o aviso de privacidade ainda estão em rascunho. Publique os textos antes de abrir o envio para os convidados.</div>' : ''}
+      <div class="group-title"><span>Telão na TV</span></div>
+      <div class="card">
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Três jeitos de colocar o telão na TV. Use o que for mais fácil no dia:</p>
+        <ol class="tvJeitos">
+          <li><b>Navegador da TV:</b> abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b class="tvCod">${codigoTv(festaId())}</b>. A TV guarda o código para a próxima vez.</li>
+          <li><b>Notebook no cabo HDMI:</b> abra o link do telão e toque em "Iniciar telão".</li>
+          <li><b>Celular ou tablet no cabo:</b> um adaptador USB-C ou Lightning para HDMI liga o celular direto na TV.</li>
+        </ol>
+      </div>
       <div class="group-title"><span>Prazo e download</span></div>
       <div class="card" id="cardPrazo"><p style="margin:0;color:var(--suave);font-size:14px">Carregando…</p></div>
       ${mod('playlist') ? `<div class="group-title"><span>Música no telão</span></div>
