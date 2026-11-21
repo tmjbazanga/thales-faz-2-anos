@@ -1711,11 +1711,12 @@ function pais() {
       ${/\[a definir/.test(CONFIG.TERMOS + CONFIG.PRIVACIDADE) ? '<div class="aviso" style="margin:16px 0 0">Os termos de uso e o aviso de privacidade ainda estão em rascunho. Publique os textos antes de abrir o envio para os convidados.</div>' : ''}
       <div class="group-title"><span>Telão na TV</span></div>
       <div class="card">
-        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Três jeitos de colocar o telão na TV. Use o que for mais fácil no dia:</p>
+        <p style="margin:0 0 10px;color:var(--suave);font-size:14px">Quatro jeitos de colocar o telão na TV. Use o que for mais fácil no dia:</p>
         <ol class="tvJeitos">
           <li><b>Navegador da TV:</b> abra <b>${enderecoTv().replace(/^https?:\/\//, '')}</b> e digite o código <b class="tvCod">${codigoTv(festaId())}</b>. A TV guarda o código para a próxima vez.${mod('playlist') ? ' <b>Atenção:</b> por aqui a música do Spotify não toca. Toque a playlist pelo celular numa caixa de som, ou pelo app do Spotify da TV.' : ''}</li>
           <li><b>Notebook no cabo HDMI:</b> abra o link do telão e toque em "Iniciar telão".</li>
           <li><b>Celular ou tablet no cabo:</b> um adaptador USB-C ou Lightning para HDMI liga o celular direto na TV.</li>
+          <li><b>Espelhar a tela do celular:</b> abra o telão no celular, deite o aparelho e espelhe a tela na TV (Smart View nas TVs Samsung, AirPlay no iPhone, "Transmitir tela" no Android). Funciona em algumas TVs. Deixe o celular carregando e na mesma rede Wi-Fi da TV.</li>
         </ol>
       </div>
       <div class="group-title"><span>Prazo e download</span></div>

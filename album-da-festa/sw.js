@@ -1,4 +1,4 @@
-const CACHE = 'album-festa-v4';
+const CACHE = 'album-festa-v5';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png',
   './temas/baloes/nuvem.png', './temas/baloes/nuvem-lua-traco.png'];
 self.addEventListener('install', e => {
