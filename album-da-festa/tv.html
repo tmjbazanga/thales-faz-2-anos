@@ -53,7 +53,7 @@ function abrir() {
   if (codigo.length !== 6) { document.getElementById('erro').textContent = 'O código tem 6 números.'; return; }
   document.getElementById('erro').textContent = 'Procurando a festa…';
   var x = new XMLHttpRequest();
-  x.open('GET', SCRIPT_URL + '?acao=tv&c=' + codigo);
+  x.open('GET', SCRIPT_URL + '?acao=tv&cod=' + codigo);
   x.onload = function () {
     var r = {}; try { r = JSON.parse(x.responseText); } catch (e) {}
     if (r.ok && r.id) { guardar('album-tv-festa', r.id); irPara(r.id); }
